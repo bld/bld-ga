@@ -1,0 +1,4 @@
+Common Lisp geometric algebra library
+
+Includes slow version with symbolic evaluation of scalar coefficients
+using Maxima as a backend via the BLD-MAXIMA system.

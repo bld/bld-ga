@@ -63,6 +63,10 @@
 
 (defsetf gref gset)
 
+(defun numberzerop (n)
+  "Return true if n is the number zero. NIL if non-zero or a non-number (e.g. symbol)."
+  (and (numberp n) (zerop n)))
+
 (defmacro w/g (name class &body body)
   "Inspired by Arc's w/ forms. Instantiate GA object of given name & class, and return it after BODY forms are evaluated."
   `(let ((,name (make-instance ,class)))
@@ -82,7 +86,7 @@
 (defmacro ong (b c g &body body)
   "Loop over a GA object's basis bitmaps and coefficients. Execute BODY when coefficient is non-zero."
   `(loopg ,b ,c ,g
-      unless (or (null ,c) (and (numberp ,c) (zerop ,c)))
+      unless (or (null ,c) (numberzerop ,c))
       do ,@body))
 
 (defmethod newg ((g g))
@@ -122,4 +126,3 @@
   (ong b c g
     (format stream " #b~b ~a" b c))
   (format stream ">"))
-

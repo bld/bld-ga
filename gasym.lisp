@@ -1,6 +1,6 @@
 (in-package :bld-ga)
 
-(export '(gradeb grade grades graden +gbc +g2 -g2 *o2 *o *g2 *g *i2 *i *c2 *c scalar *s2 *s))
+(export '(gradeb grade grades graden +gbc +g2 +g -g2 *gs -g *o2 *o *g2 *g *i2 *i *c2 *c scalar *s2 *s))
 
 (defmethod gradeb ((b integer))
   "Grade of a basis"
@@ -18,7 +18,7 @@
   "Return list of all grades present in GA object"
   (remove-duplicates
    (loopg b c g
-      unless (and (numberp c) (zerop c))
+      unless (numberzerop c)
       collect (gradeb b))))
 
 (defmethod graden ((g g) (n integer))
@@ -41,17 +41,35 @@
   "Add two GA objects"
   (assert (typep g1 (type-of g2)))
   (mapcg #'(lambda (c1 c2)
-	     (simp `(+ ,c1 ,c2)))
+	     (if (and (numberzerop c1) (numberzerop c2))
+		 0
+		 (simp `(+ ,c1 ,c2))))
 	 g1
 	 g2))
+
+(defun +g (&rest args)
+  "Add a series of GA objects"
+  (reduce #'+g2 args))
 
 (defmethod -g2 ((g1 g) (g2 g))
   "Subtract one GA object from another"
   (assert (typep g1 (type-of g2)))
   (mapcg #'(lambda (c1 c2)
-	     (simp `(- ,c1 ,c2)))
+	     (if (and (numberzerop c1) (numberzerop c2))		      
+		 0
+		 (simp `(+ ,c1 (- ,c2)))))
 	 g1
 	 g2))
+
+(defmethod *gs ((g g) s)
+  "Multiply GA object by a scalar"
+  (mapcg #'(lambda (c) (simp `(* ,c ,s))) g))
+
+(defun -g (arg1 &rest args)
+  "If 1 arg, negate. Otherwise, subtract the rest of the arguments from 1st."
+  (if args
+      (reduce #'-g2 (cons arg1 args))
+      (*gs arg1 -1)))
 
 ;; Multiplication
 
