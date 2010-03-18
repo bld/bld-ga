@@ -1,15 +1,20 @@
-;; Examples of usage of BLD-GA
-;; Used for top-down development of the library
-
 (in-package :bld-ga)
 
-(defga e2ga 2
-    :basis (e1 e2) 
-    :metric ((e1 e1 1) (e2 e2 1)))
+(defg e2 2)
+(defgfun e2 #(0 1 2 3))
 
-(defga c2ga 4
-    :basis (no e1 e2 ni)
-    :metric ((e1 e1 1)
-	     (e2 e2 1)
-	     (no ni -1)))
+(defg e3 3)
+(defgfun e3 #(0 1 2 3 4 5 6 7))
 
+(defg c2 4 #2a((0 0 0 -1)
+	       (0 1 0 0)
+	       (0 0 1 0)
+	       (-1 0 0 0)))
+(defgfun c2 #(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
+
+(defg c3 5 #2a((0 0 0 0 -1)
+	       (0 1 0 0 0)
+	       (0 0 1 0 0)
+	       (0 0 0 1 0)
+	       (-1 0 0 0 0)))
+(defgfun c3 #(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31))

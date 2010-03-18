@@ -1,6 +1,8 @@
 (in-package :bld-ga)
 
-(export '(gradeb grade grades graden +gbc +g2 +g -g2 *gs -g *o2 *o *g2 *g *i2 *i *c2 *c scalar *s2 *s))
+(export '(gradeb grade grades graden +gbc +g2 +g -g2 *gs /gs -g *o2 *o *g2 *g *i2 *i *c2 *c scalar *s2 *s revg invv refl rot spin normr2 normr norme2 norme))
+
+;; Grades
 
 (defmethod gradeb ((b integer))
   "Grade of a basis"
@@ -28,6 +30,8 @@
 		c
 		0))
 	g))
+
+;; Arithmetic (addition, subtractions, scalar multiplication)
 
 (defmethod +gbc ((g g) (b integer) c)
   "Add C to GA object's B coefficient"
@@ -64,6 +68,10 @@
 (defmethod *gs ((g g) s)
   "Multiply GA object by a scalar"
   (mapcg #'(lambda (c) (simp `(* ,c ,s))) g))
+
+(defmethod /gs ((g g) s)
+  "Divide GA object by a scalar"
+  (mapcg #'(lambda (c) (simp `(* ,c (expt ,s -1)))) g))
 
 (defun -g (arg1 &rest args)
   "If 1 arg, negate. Otherwise, subtract the rest of the arguments from 1st."
@@ -239,3 +247,48 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
   "Scalar product of 2 GA objects"
   (scalar (*g2 g1 g2)))
 (defun *s (&rest args) "Scalar product" (reduce #'*s2 args))
+
+;; Reverse
+
+(defmethod revg ((g g))
+  "Reverse of GA object"
+  (mapg #'(lambda (b c) (simp `(* ,c ,(aref (revtable g) b)))) g))
+
+;; Versor inverse
+
+(defmethod invv ((g g))
+  "Inverse of a versor"
+  (/gs (revg g) (scalar (*g2 g (revg g)))))
+
+;; Reflection/rotation
+
+(defmethod refl ((g g) (n g))
+  "Reflect a GA object by vector (normalized)"
+  (*g n g (invv n)))
+
+(defmethod rot ((g g) (r g))
+  "Rotate GA object by rotor (normalized)"
+  (*g r g (invv r)))
+
+(defmethod spin ((g g) (s g))
+  "Spin a GA object by a spinor (not normalized)"
+  (*g s g (revg s)))
+
+;; Norms, unit GA objects
+
+(defmethod normr2 ((g g))
+  "Reverse norm squared"
+  (scalar (*g2 g (revg g))))
+
+(defmethod normr ((g g))
+  "Reverse norm"
+  (let ((nr2g (normr2 g)))
+    (simp `(* (signum ,nr2g) (sqrt (abs ,nr2g))))))
+
+(defmethod norme2 ((g g))
+  "Euclidean norm squared"
+  (scalar (*g2e g (revg g))))
+
+(defmethod norme ((g g))
+  "Euclidean norm"
+  (simp `(sqrt ,(norme2 g))))

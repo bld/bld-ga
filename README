@@ -1,4 +1,27 @@
-Common Lisp geometric algebra library
-
+BLD-GA is a Common Lisp geometric algebra library.
 Includes slow version with symbolic evaluation of scalar coefficients
 using Maxima as a backend via the BLD-MAXIMA system.
+
+
+References
+==========
+
+"Efficient Implementation of Geometric Algebra"
+http://staff.science.uva.nl/~fontijne/phd.html
+
+...and the books:
+
+"Geometric Algebra For Computer Science"
+http://www.geometricalgebra.net/
+
+"Geometric Algebra for Physicists"
+http://www.mrao.cam.ac.uk/~cjld1/pages/book.htm
+
+"New Foundations for Classical Mechanics"
+http://geocalc.clas.asu.edu/html/NFCM.html
+
+Similar Projects
+================
+
+Gaigen: http://www.science.uva.nl/ga/gaigen/
+Gaigen 2: http://staff.science.uva.nl/~fontijne/gaigen2.html
