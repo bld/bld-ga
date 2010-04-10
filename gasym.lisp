@@ -1,6 +1,6 @@
 (in-package :bld-ga)
 
-(export '(gradeb grade grades graden +gbc +g2 +g -g2 *gs /gs -g *o2 *o *g2 *g *i2 *i *c2 *c scalar *s2 *s revg invv refl rot spin normr2 normr norme2 norme))
+(export '(gradeb grade grades graden gbc+ g2+ g+ g2- *gs /gs g- *o2 *o *g2 *g *i2 *i *c2 *c scalar *s2 *s revg invv refl rot spin normr2 normr norme2 norme))
 
 ;; Grades
 
@@ -33,7 +33,7 @@
 
 ;; Arithmetic (addition, subtractions, scalar multiplication)
 
-(defmethod +gbc ((g g) (b integer) c)
+(defmethod gbc+ ((g g) (b integer) c)
   "Add C to GA object's B coefficient"
   (mapg #'(lambda (bi ci)
 	    (if (= bi b)
@@ -41,7 +41,7 @@
 		ci))
 	g))
 
-(defmethod +g2 ((g1 g) (g2 g))
+(defmethod g2+ ((g1 g) (g2 g))
   "Add two GA objects"
   (assert (typep g1 (type-of g2)))
   (mapcg #'(lambda (c1 c2)
@@ -51,11 +51,11 @@
 	 g1
 	 g2))
 
-(defun +g (&rest args)
+(defun g+ (&rest args)
   "Add a series of GA objects"
-  (reduce #'+g2 args))
+  (reduce #'g2+ args))
 
-(defmethod -g2 ((g1 g) (g2 g))
+(defmethod g2- ((g1 g) (g2 g))
   "Subtract one GA object from another"
   (assert (typep g1 (type-of g2)))
   (mapcg #'(lambda (c1 c2)
@@ -73,10 +73,10 @@
   "Divide GA object by a scalar"
   (mapcg #'(lambda (c) (simp `(* ,c (expt ,s -1)))) g))
 
-(defun -g (arg1 &rest args)
+(defun g- (arg1 &rest args)
   "If 1 arg, negate. Otherwise, subtract the rest of the arguments from 1st."
   (if args
-      (reduce #'-g2 (cons arg1 args))
+      (reduce #'g2- (cons arg1 args))
       (*gs arg1 -1)))
 
 ;; Multiplication
@@ -111,7 +111,7 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
        (ong b1 c1 g1
 	 (ong b2 c2 g2
 	   (multiple-value-bind (b3 sign) (,ebfn b1 b2)
-	     (setq g3 (+gbc g3 b3 (simp `(* ,sign ,c1 ,c2))))))))))
+	     (setq g3 (gbc+ g3 b3 (simp `(* ,sign ,c1 ,c2))))))))))
 
 (defmacro defgpo (name obfn doc)
   "Define a derived geometric product function on an orthogonal basis given name, orthogonal function of bitmaps & metric, and documentation string"
@@ -121,7 +121,7 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
        (ong b1 c1 g1
 	 (ong b2 c2 g2
 	   (multiple-value-bind (b3 sign) (,obfn b1 b2 m)
-	     (setq g3 (+gbc g3 b3 (simp `(* ,sign ,c1 ,c2))))))))))
+	     (setq g3 (gbc+ g3 b3 (simp `(* ,sign ,c1 ,c2))))))))))
 
 ;; Bitmap products (Euclidean & orthogonal)
 
@@ -189,7 +189,7 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 		 for mji = (aref m j i)
 		 do (unless (zerop mji)
 		      (ong alb alc al
-			(setq tmp (+g2 tmp (*o2 (funcall class alb alc) 
+			(setq tmp (g2+ tmp (*o2 (funcall class alb alc) 
 						(funcall class (ash 1 j) mji)))))))
 	      (setq al tmp))))
     al))
@@ -198,13 +198,13 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
   "Transform non-orthogonal GA object to from metric to eigen basis"
   (w/newg out a
     (ong b c a
-      (setq out (+g2 out (transform (type-of a) b c (inveigmatrix m) (dimension a)))))))
+      (setq out (g2+ out (transform (type-of a) b c (inveigmatrix m) (dimension a)))))))
 
 (defun tometricbasis (a m)
   "Transform non-orthogonal GA object back to metric from eigen basis"
   (w/newg out a
     (ong b c a
-      (setq out (+g2 out (transform (type-of a) b c (eigmatrix m) (dimension a)))))))
+      (setq out (g2+ out (transform (type-of a) b c (eigmatrix m) (dimension a)))))))
 
 (defmacro defgpno (name ofn doc)
   "Define derived geometric product on non-orthogonal basis given name, corresponding orthogonal function of MVs & vector metric, and documentation string"
