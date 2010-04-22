@@ -2,7 +2,7 @@
 
 (in-package :bld-ga)
 
-(export '(metric make-metric))
+;;(export '(metric make-metric))
 
 (defun transpose (a)
   "Transpose 2D array"

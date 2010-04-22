@@ -7,10 +7,10 @@
   :version "0.0.1"
   :maintainer "Benjamin L. Diedrich <ben@solarsails.info>"
   :license "MIT"
-  :description "Geometric algebra"
-  :depends-on ("bld-maxima" "bld-utils")
+  :description "Geometric algebra with numeric scalar coefficients"
+  :depends-on ("bld-num" "bld-utils")
   :components
   ((:file "package")
    (:file "metric" :depends-on ("package"))
-   (:file "mvsym" :depends-on ("metric"))
-   (:file "gasym" :depends-on ("mvsym"))))
+   (:file "mv" :depends-on ("metric"))
+   (:file "ga" :depends-on ("mv"))))
