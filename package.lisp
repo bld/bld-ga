@@ -24,11 +24,13 @@
 	   :mapg
 	   :cpg
 	   :w/cpg
+	   :makeg
 	   :gradeb
 	   :grade
 	   :grades
 	   :graden
-	   :gbc+ 
+	   :gbc+
+	   :gs+
 	   :g2+ 
 	   :g+ 
 	   :g2-
@@ -54,4 +56,16 @@
 	   :normr2
 	   :normr
 	   :norme2
-	   :norme))
+	   :norme
+	   :norminf
+	   :pseudoscalar
+	   :dual
+	   :unitg
+	   :recipbv
+	   :recipbvs
+	   :oneg
+	   :exptg
+	   :square
+	   :cube
+	   :expbv
+	   :rotor))
