@@ -321,7 +321,7 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 (defun recipbvs (&rest bvs)
   "Given a list of basis vectors, generate reciprocal basis"
   (loop for k below (length bvs)
-     collect (recipbv bvs k)))
+     collect (recipbv k bvs)))
 
 (defmethod oneg ((g g))
   "1 GA object"
