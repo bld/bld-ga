@@ -68,4 +68,5 @@
 	   :square
 	   :cube
 	   :expbv
-	   :rotor))
+	   :rotor
+	   :zerogp))

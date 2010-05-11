@@ -321,7 +321,7 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 (defun recipbvs (&rest bvs)
   "Given a list of basis vectors, generate reciprocal basis"
   (loop for k below (length bvs)
-     collect (recipbv k bvs)))
+     collect (apply #'recipbv k bvs)))
 
 (defmethod oneg ((g g))
   "1 GA object"
@@ -394,3 +394,8 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 (defmethod rotor ((b g) (a number))
   "Create a rotor given a bivector (rotation plane) and angle"
   (expbv (*gs (unitg b) (/ a -2))))
+
+;; Test functions
+(defmethod zerogp ((g g))
+  "Test if GA object is zero"
+  (null (grade g)))
