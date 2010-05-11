@@ -29,6 +29,8 @@
 	   :grade
 	   :grades
 	   :graden
+	   :bitmaps
+	   :bitmap-part
 	   :gbc+
 	   :gs+
 	   :g2+ 

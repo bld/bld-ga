@@ -29,6 +29,20 @@
 		0))
 	g))
 
+(defmethod bitmaps ((g g))
+  "Basis bitmaps present in GA object"
+  (loopg b c g
+     unless (numberzerop c)
+     collect b))
+
+(defmethod bitmap-part ((g g) bitmap)
+  "Return portion of GA object that corresponds to given bitmap"
+  (mapg #'(lambda (b c)
+	    (if (find b bitmap)
+		c
+		0))
+	g))
+
 ;; Arithmetic (addition, subtractions, scalar multiplication)
 
 (defmethod gbc+ ((g g) (b integer) c)
@@ -270,11 +284,11 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 
 (defmethod rot ((g g) (r g))
   "Rotate GA object by rotor (normalized)"
-  (*g r g (invv r)))
+  (bitmap-part (*g r g (invv r)) (bitmaps g)))
 
 (defmethod spin ((g g) (s g))
   "Spin a GA object by a spinor (not normalized)"
-  (*g s g (revg s)))
+  (bitmap-part (*g s g (revg s)) (bitmaps g)))
 
 ;; Norms, unit GA objects
 
@@ -391,9 +405,11 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 	       do (setq bout (*g2 bout bout))
 	       (setq scale (ash scale -1)))
 	  bout))))
-(defmethod rotor ((b g) (a number))
+(defmethod rotor ((b g) a)
   "Create a rotor given a bivector (rotation plane) and angle"
-  (expbv (*gs (unitg b) (/ a -2))))
+  ;;  (expbv (*gs (unitg b) (/ a -2))))
+  (gs+ (*gs (unitg b) (negn (sinn (/n2 a 2))))
+       (cosn (/n2 a 2))))
 
 ;; Test functions
 (defmethod zerogp ((g g))
