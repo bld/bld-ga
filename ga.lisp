@@ -190,6 +190,7 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 
 (defgpe *o2 *ob "Outer product of 2 GA objects. Euclidean, orthogonal, & non-orthogonal metrics.")
 (defun *o (&rest args) "Outer product" (reduce #'*o2 args))
+(defmethod *o3 ((g1 g)(g2 g)(g3 g)) "Outer product of 3 GA objects" (*o g1 g2 g3))
 
 ;; Non-orthogonal products
 
@@ -244,16 +245,19 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 (defgpno *g2no *g2o "Geometric product with non-orthogonal metric")
 (defgp *g2 *g2e *g2o *g2no "Geometric product of 2 GA objects")
 (defun *g (&rest args) "Geometric product" (reduce #'*g2 args))
+(defmethod *g3 ((g1 g)(g2 g)(g3 g)) "Geometric product of 3 GA objects" (*g g1 g2 g3))
 (defgpe *i2e *ibe "Inner contraction product with Euclidean basis")
 (defgpo *i2o *ibo "Inner contraction product with orthogonal basis")
 (defgpno *i2no *i2o "Inner contraction product with non-orthogonal basis")
 (defgp *i2 *i2e *i2o *i2no "Inner contraction product")
 (defun *i (&rest args) (reduce #'*i2 args))
-(defgpe *c2e *cbe "Inner contraction product with Euclidean basis")
-(defgpo *c2o *cbo "Inner contraction product with orthogonal basis")
-(defgpno *c2no *c2o "Inner contraction product with non-orthogonal basis")
-(defgp *c2 *c2e *c2o *c2no "Inner contraction product")
+(defmethod *i3 ((g1 g)(g2 g)(g3 g)) "Inner contraction product of 3 GA objects" (*i g1 g2 g3))
+(defgpe *c2e *cbe "Commutator product with Euclidean basis")
+(defgpo *c2o *cbo "Commutator product with orthogonal basis")
+(defgpno *c2no *c2o "Commutator product with non-orthogonal basis")
+(defgp *c2 *c2e *c2o *c2no "Commutator product")
 (defun *c (&rest args) (reduce #'*c2 args))
+(defmethod *c3 ((g1 g)(g2 g)(g3 g)) "Commutator product of 3 GA objects" (*c g1 g2 g3))
 
 (defmethod scalar ((g g))
   "Scalar part of GA object"
@@ -262,7 +266,14 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 (defmethod *s2 ((g1 g) (g2 g))
   "Scalar product of 2 GA objects"
   (scalar (*g2 g1 g2)))
+(defmethod *s2 ((g1 g) g2)
+  (*gs g1 g2))
+(defmethod *s2 (g1 (g2 g))
+  (*gs g2 g1))
+(defmethod *s2 (g1 g2)
+  (*n2 g1 g2))
 (defun *s (&rest args) "Scalar product" (reduce #'*s2 args))
+(defmethod *s3 ((g1 g)(g2 g)(g3 g)) "Scalar product of 3 GA objects" (*s g1 g2 g3))
 
 ;; Reverse
 

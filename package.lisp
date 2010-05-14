@@ -41,15 +41,20 @@
 	   :g-
 	   :*o2
 	   :*o
+	   :*o3
 	   :*g2
 	   :*g
+	   :*g3
 	   :*i2
 	   :*i
+	   :*i3
 	   :*c2
 	   :*c
+	   :*c3
 	   :scalar
 	   :*s2
 	   :*s
+	   :*s3
 	   :revg
 	   :invv
 	   :refl
