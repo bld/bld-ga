@@ -46,7 +46,7 @@
 ;; Arithmetic (addition, subtractions, scalar multiplication)
 
 (defmethod gbc+ ((g g) (b integer) c)
-  "Add C to GA object's B coefficient"
+  "Add scalar C to GA object's B coefficient"
   (mapg #'(lambda (bi ci)
 	    (if (= bi b)
 		(n2+ ci c)

@@ -1,5 +1,6 @@
 (defpackage :bld-ga
   (:use :common-lisp :bld-num :bld-utils)
+  (:import-from :bld-maxima :jacobi)
     (:export :metric
 	   :make-metric
 	   :genrevtable
