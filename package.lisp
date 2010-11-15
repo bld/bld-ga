@@ -1,7 +1,15 @@
 (defpackage :bld-ga
-  (:use :common-lisp :bld-num :bld-utils)
-  (:import-from :bld-maxima :jacobi)
-    (:export :metric
+  (:use :common-lisp :bld-utils)
+  (:import-from :bld-maxima jacobi)
+  (:shadowing-import-from :bld-gen
+		+ - * / expt
+		sin cos tan
+		atan asin acos
+		sinh cosh tanh 
+		asinh acosh atanh
+		log exp sqrt abs
+		min max signum)
+  (:export :metric
 	   :make-metric
 	   :genrevtable
 	   :g

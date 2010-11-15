@@ -49,7 +49,7 @@
   "Add scalar C to GA object's B coefficient"
   (mapg #'(lambda (bi ci)
 	    (if (= bi b)
-		(n2+ ci c)
+		(+ ci c)
 		ci))
 	g))
 
@@ -63,9 +63,22 @@
   (mapcg #'(lambda (c1 c2)
 	     (if (and (numberzerop c1) (numberzerop c2))
 		 0
-		 (n2+ c1 c2)))
+		 (+ c1 c2)))
 	 g1
 	 g2))
+
+(defmethod bld-gen::two+ ((g g) s)
+  (gbc+ g 0 s))
+
+(defmethod bld-gen::two+ (s (g g))
+  (gbc+ g 0 s))
+
+(defmethod bld-gen::two+ ((g1 g) (g2 g))
+  (mapcg #'(lambda (c1 c2)
+	     (if (and (numberzerop c1) (numberzerop c2))
+		 0
+		 (+ c1 c2)))
+	 g1 g2))
 
 (defun g+ (&rest args)
   "Add a series of GA objects"
@@ -77,23 +90,50 @@
   (mapcg #'(lambda (c1 c2)
 	     (if (and (numberzerop c1) (numberzerop c2))		      
 		 0
-		 (n2- c1 c2)))
+		 (- c1 c2)))
+	 g1
+	 g2))
+
+(defmethod bld-gen::two- ((g g) s)
+  (+ g (- s)))
+
+(defmethod bld-gen::two- (s (g g))
+  (+ (- s) g))
+
+(defmethod bld-gen::two- ((g1 g) (g2 g))
+  (assert (typep g1 (type-of g2)))
+  (mapcg #'(lambda (c1 c2)
+	     (if (and (numberzerop c1) (numberzerop c2))		      
+		 0
+		 (- c1 c2)))
 	 g1
 	 g2))
 
 (defmethod *gs ((g g) s)
   "Multiply GA object by a scalar"
-  (mapcg #'(lambda (c) (*n2 c s)) g))
+  (mapcg #'(lambda (c) (* c s)) g))
+
+(defmethod bld-gen::two* ((g g) s)
+  (mapcg #'(lambda (c) (* c s)) g))
+
+(defmethod bld-gen::two* (s (g g))
+  (mapcg #'(lambda (c) (* s c)) g))
 
 (defmethod /gs ((g g) s)
   "Divide GA object by a scalar"
-  (mapcg #'(lambda (c) (/n2 c s)) g))
+  (mapcg #'(lambda (c) (/ c s)) g))
+
+(defmethod bld-gen::two/ ((g g) s)
+  (mapcg #'(lambda (c) (/ c s)) g))
 
 (defun g- (arg1 &rest args)
   "If 1 arg, negate. Otherwise, subtract the rest of the arguments from 1st."
   (if args
       (reduce #'g2- (cons arg1 args))
       (*gs arg1 -1)))
+
+(defmethod bld-gen::one- ((g g))
+  (* g -1))
 
 ;; Multiplication
 
@@ -127,7 +167,7 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
        (ong b1 c1 g1
 	 (ong b2 c2 g2
 	   (multiple-value-bind (b3 sign) (,ebfn b1 b2)
-	     (setq g3 (gbc+ g3 b3 (*n2 sign (*n2 c1 c2))))))))))
+	     (setq g3 (gbc+ g3 b3 (* sign (* c1 c2))))))))))
 
 (defmacro defgpo (name obfn doc)
   "Define a derived geometric product function on an orthogonal basis given name, orthogonal function of bitmaps & metric, and documentation string"
@@ -137,7 +177,7 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
        (ong b1 c1 g1
 	 (ong b2 c2 g2
 	   (multiple-value-bind (b3 sign) (,obfn b1 b2 m)
-	     (setq g3 (gbc+ g3 b3 (*n2 sign (*n2 c1 c2))))))))))
+	     (setq g3 (gbc+ g3 b3 (* sign (* c1 c2))))))))))
 
 ;; Bitmap products (Euclidean & orthogonal)
 
@@ -271,7 +311,7 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 (defmethod *s2 (g1 (g2 g))
   (*gs g2 g1))
 (defmethod *s2 (g1 g2)
-  (*n2 g1 g2))
+  (* g1 g2))
 (defun *s (&rest args) "Scalar product" (reduce #'*s2 args))
 (defmethod *s3 ((g1 g)(g2 g)(g3 g)) "Scalar product of 3 GA objects" (*s g1 g2 g3))
 
@@ -279,7 +319,7 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 
 (defmethod revg ((g g))
   "Reverse of GA object"
-  (mapg #'(lambda (b c) (*n2 c (aref (revtable g) b))) g))
+  (mapg #'(lambda (b c) (* c (aref (revtable g) b))) g))
 
 ;; Versor inverse
 
@@ -310,7 +350,7 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 (defmethod normr ((g g))
   "Reverse norm"
   (let ((nr2g (normr2 g)))
-    (*n2 (signumn nr2g) (sqrtn (absn nr2g)))))
+    (* (signum nr2g) (sqrt (abs nr2g)))))
 
 (defmethod norme2 ((g g))
   "Euclidean norm squared"
@@ -318,11 +358,11 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 
 (defmethod norme ((g g))
   "Euclidean norm"
-  (sqrtn (norme2 g)))
+  (sqrt (norme2 g)))
 
 (defmethod norminf ((g g))
   "Infinity norm"
-  (reduce #'max2n (map 'vector #'absn (coef g))))
+  (reduce #'max (map 'vector #'abs (coef g))))
 
 (defmethod pseudoscalar ((g g))
   "Pseudoscalar of given GA object"
@@ -419,8 +459,8 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 (defmethod rotor ((b g) a)
   "Create a rotor given a bivector (rotation plane) and angle"
   ;;  (expbv (*gs (unitg b) (/ a -2))))
-  (gs+ (*gs (unitg b) (negn (sinn (/n2 a 2))))
-       (cosn (/n2 a 2))))
+  (gs+ (*gs (unitg b) (- (sin (/ a 2))))
+       (cos (/ a 2))))
 
 ;; Test functions
 (defmethod zerogp ((g g))
