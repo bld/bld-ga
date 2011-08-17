@@ -67,13 +67,13 @@
 	 g1
 	 g2))
 
-(defmethod bld-gen::two+ ((g g) s)
+(defmeth2 + ((g g) (s t))
   (gbc+ g 0 s))
 
-(defmethod bld-gen::two+ (s (g g))
+(defmeth2 + ((s t) (g g))
   (gbc+ g 0 s))
 
-(defmethod bld-gen::two+ ((g1 g) (g2 g))
+(defmeth2 + ((g1 g) (g2 g))
   (mapcg #'(lambda (c1 c2)
 	     (if (and (numberzerop c1) (numberzerop c2))
 		 0
@@ -94,13 +94,13 @@
 	 g1
 	 g2))
 
-(defmethod bld-gen::two- ((g g) s)
+(defmeth2 - ((g g) (s t))
   (+ g (- s)))
 
-(defmethod bld-gen::two- (s (g g))
+(defmeth2 - ((s t) (g g))
   (+ (- s) g))
 
-(defmethod bld-gen::two- ((g1 g) (g2 g))
+(defmeth2 - ((g1 g) (g2 g))
   (assert (typep g1 (type-of g2)))
   (mapcg #'(lambda (c1 c2)
 	     (if (and (numberzerop c1) (numberzerop c2))		      
@@ -113,17 +113,17 @@
   "Multiply GA object by a scalar"
   (mapcg #'(lambda (c) (* c s)) g))
 
-(defmethod bld-gen::two* ((g g) s)
+(defmeth2 * ((g g) (s t))
   (mapcg #'(lambda (c) (* c s)) g))
 
-(defmethod bld-gen::two* (s (g g))
+(defmeth2 * ((s t) (g g))
   (mapcg #'(lambda (c) (* s c)) g))
 
 (defmethod /gs ((g g) s)
   "Divide GA object by a scalar"
   (mapcg #'(lambda (c) (/ c s)) g))
 
-(defmethod bld-gen::two/ ((g g) s)
+(defmeth2 / ((g g) (s t))
   (mapcg #'(lambda (c) (/ c s)) g))
 
 (defun g- (arg1 &rest args)
@@ -132,7 +132,7 @@
       (reduce #'g2- (cons arg1 args))
       (*gs arg1 -1)))
 
-(defmethod bld-gen::one- ((g g))
+(defmeth1 - ((g g))
   (* g -1))
 
 ;; Multiplication

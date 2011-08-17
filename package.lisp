@@ -9,6 +9,7 @@
 		asinh acosh atanh
 		log exp sqrt abs
 		min max signum)
+  (:import-from :bld-gen defmeth2 defmeth1)
   (:export :metric
 	   :make-metric
 	   :genrevtable
