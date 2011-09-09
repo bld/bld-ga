@@ -17,30 +17,15 @@
   ((matrix :initarg :matrix :reader matrix)
    (eigenmetric :reader eigenmetric)
    (eigmatrix :reader eigmatrix)
-   (inveigmatrix :reader inveigmatrix)
-#|   (isdiagonal :reader isdiagonal)
-   (iseuclidean :reader iseuclidean)
-   (isantieuclidean :reader isantieuclidean)))
-   |#))
+   (inveigmatrix :reader inveigmatrix)))
 
 (defmethod initialize-instance :after ((mt metric) &key)
-  (with-slots (matrix eigenmetric eigmatrix inveigmatrix isdiagonal iseuclidean isantieuclidean) mt
+  (with-slots (matrix eigenmetric eigmatrix inveigmatrix) mt
     (multiple-value-bind (eigval eigvec) (jacobi matrix)
       (setf eigenmetric eigval)
       (setf eigenmetric (map 'vector #'fround eigenmetric))
       (setf eigmatrix eigvec)
-      (setf inveigmatrix (transpose eigvec))
-#|    (setf isdiagonal (diagonalp matrix))
-    (if (not isdiagonal)
-	(setf iseuclidean nil isantieuclidean nil)
-	(progn
-	  (setf iseuclidean t isantieuclidean t)
-	  (loop for i below (.column-count matrix)
-	     when (/= (.aref matrix i i) 1d0)
-	     do (setf iseuclidean nil)
-	     when (/= (.aref matrix i i) -1d0)
-	     do (setf isantieuclidean nil))))))
-    |#)))
+      (setf inveigmatrix (transpose eigvec)))))
 
 (defun coerce-dfloat-2darray (m)
   "Coerce a 2d array to double float, returning new array"

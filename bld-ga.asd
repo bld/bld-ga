@@ -8,7 +8,7 @@
   :maintainer "Benjamin L. Diedrich <ben@solarsails.info>"
   :license "MIT"
   :description "Geometric algebra with numeric scalar coefficients"
-  :depends-on ("bld-gen" "bld-utils" "bld-maxima")
+  :depends-on ("bld-gen" "bld-utils" "bld-linalg")
   :components
   ((:file "package")
    (:file "metric" :depends-on ("package"))
