@@ -2,13 +2,13 @@
   (:use :common-lisp :bld-utils)
   (:import-from :bld-linalg jacobi)
   (:shadowing-import-from :bld-gen
-		+ - * / expt
-		sin cos tan
-		atan asin acos
-		sinh cosh tanh 
-		asinh acosh atanh
-		log exp sqrt abs
-		min max signum)
+			  + - * / expt
+			  sin cos tan
+			  atan asin acos
+			  sinh cosh tanh 
+			  asinh acosh atanh
+			  log exp sqrt abs
+			  min max signum)
   (:import-from :bld-gen defmeth2 defmeth1)
   (:export :metric
 	   :make-metric
