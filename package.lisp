@@ -86,4 +86,5 @@
 	   :cube
 	   :expbv
 	   :rotor
-	   :zerogp))
+	   :zerogp
+	   :linearlambda))
