@@ -17,39 +17,38 @@ Inverse is proving problematic, because it is
 
 (in-package :bld-ga)
 
-(defun factorblade (b c dimension class)
-  "Return a list of basis vectors whose outer product results in a basis blade of given basis bitmap, coefficient, and dimension. Also give vector class."
-  (loop for dim below dimension
-     for bvb = (expt 2 dim)
-     when (/= 0 (logand bvb b))
-     collect (makeg class bvb (expt c (/ (logcount b))))))
-
 (defun factormv (mv)
   "Return factorization of multivector as list of summed blades, and blades as a list of basis vectors"
-  (loop for c across (coef mv)
-     for b across (bitmap mv)
-     if (and (not (equal 0 c))
-	     (not (zerop b)))
-     collect (factorblade b c (dimension mv) (type-of (graden mv 1)))
-     else if (and (zerop b)
-		  (not (zerop c)))
-     collect (list c)))
+  (flet ((factorblade (b c dimension class)
+	   (loop for dim below dimension
+	      for bvb = (expt 2 dim)
+	      when (/= 0 (logand bvb b))
+	      collect (makeg class bvb (expt c (/ (logcount b)))))))
+    (loop for c across (coef mv)
+       for b across (bitmap mv)
+       if (and (not (equal 0 c))
+	       (not (zerop b)))
+       collect (factorblade b c (dimension mv) (type-of (graden mv 1)))
+       else if (and (zerop b)
+		    (not (zerop c)))
+       collect (list c))))
 
 (defun linearlambda (ga vlambda)
   "Return a linear function of multivectors given the geometric algebra and a linear function of vectors"
-  (lambda (mv)
-    (cond
-      ((and (typep mv 'g) (eql (grade mv) 1)) ; vectors, grade 1, apply vector function
-       (funcall vlambda mv))
-      ((typep mv 'g) ; factor multivector, apply to each part, outer product blades, and sum
-       (apply #'+ (loop for factor in (factormv mv)
-		     collect (apply #'*o (mapcar #'(lambda (v)
-						     (if (typep v 'g)
-							 (funcall vlambda v)
-							 v)) factor)))))
-      ((eql mv :ga) ga) ; get the geometric algebra used
-      ((eql mv :vlambda) vlambda) ; get the vector linear function
-      (t mv)))) ; otherwise (for scalars) just return
+  (dlambda
+   (:ga () ga)
+   (:vlambda () vlambda)
+   (t (mv)
+      (cond
+	((and (typep mv 'g) (eql (grade mv) 1)) ; vectors, grade 1, apply vector function
+	 (funcall vlambda mv))
+	((typep mv 'g) ; factor multivector, apply to each part, outer product blades, and sum
+	 (apply #'+ (loop for factor in (factormv mv)
+		       collect (apply #'*o (mapcar #'(lambda (v)
+						       (if (typep v 'g)
+							   (funcall vlambda v)
+							   v)) factor)))))
+	(t mv))))) ; otherwise (for scalars) just return
 
 (defun expand-mv-factors (factors)
   "Expand factorized multivector"
@@ -61,14 +60,14 @@ Inverse is proving problematic, because it is
   (let ((i (pseudoscalar (make-instance (funcall lfun :ga)))))
     (scalar (*g (funcall lfun i) (revg i)))))
 
-(defmethod basisi ((g g) (i number))
-  "Generate one default basis vector given GA object and index (referenced from 0, not 1)"
-  (graden (makeg (type-of g) (expt 2 i) 1) 1))
+(defmethod basisi ((g g) (bvb number))
+  "Generate one default basis vector given GA object and basis vector bitmap (e.g. #b1 #b10 #b100)"
+  (graden (makeg (type-of g) bvb 1) 1))
 
 (defmethod basis ((g g))
   "Generate default list of basis vectors given a GA object"
   (loop for i below (dimension g)
-     collect (basisi g i)))
+     collect (basisi g (expt 2 i))))
 
 (defun adjointvfun (lfun &optional (basis (basis (make-instance (funcall lfun :ga)))))
   "Make adjoint vector function given linear function and optional list of basis vectors."
@@ -83,8 +82,9 @@ Inverse is proving problematic, because it is
 
 (defun inverselambda (lfun &optional (basis (basis (make-instance (funcall lfun :ga)))))
   "Make inverse linear function of given linear function and optional basis."
-  (let* ((i (pseudoscalar (make-instance (funcall lfun :ga))))
+  (let* ((ga (funcall lfun :ga))
+	 (i (pseudoscalar (make-instance ga)))
 	 (ii (invv i))
 	 (adj (adjointlambda lfun basis))
 	 (invdet (/ (determinant lfun))))
-    (linearlambda (funcall lfun :ga) #'(lambda (v) (* invdet (*g i (funcall adj (*g ii v))))))))
+    (linearlambda ga #'(lambda (v) (* invdet (*g i (funcall adj (*g ii v))))))))
