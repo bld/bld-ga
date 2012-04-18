@@ -423,12 +423,12 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
       (let ((b2s (scalar b2)))
 	(cond ((< b2s 0)
 	       (let ((a (sqrt (- b2s))))
-		 (gs+ (*gs b (/ (sin a) a)) (cos a))))
+		 (+ (* b (/ (sin a) a)) (cos a))))
 	      ((zerop b2s)
-	       (gs+ b 1))
+	       (+ b 1))
 	      ((> b2s 0)
 	       (let ((a (sqrt b2s)))
-		 (gs+ (*gs b (/ (sinh a) a)) (cosh a)))))))))
+		 (+ (* b (/ (sinh a) a)) (cosh a)))))))))
 (defmethod expbv ((b g) &optional (order 9))
   "Bivector exponential"
   (let* ((eps 1d-7)
@@ -449,8 +449,8 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 	  (let ((scaled (*gs b (/ scale)))
 		(tmp (makeg (type-of b) #b0 1)))
 	    (loop for i below order
-	       do (setq tmp (*gs (*g2 tmp scaled) (/ i)))
-		 (g2+ bout tmp)))
+	       do (setq tmp (* (*g2 tmp scaled) (/ i)))
+		 (+ bout tmp)))
 	  ;; Undo scaling
 	  (loop while (> scale 1)
 	       do (setq bout (*g2 bout bout))
@@ -458,9 +458,9 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 	  bout))))
 (defmethod rotor ((b g) a)
   "Create a rotor given a bivector (rotation plane) and angle"
-  ;;  (expbv (*gs (unitg b) (/ a -2))))
-  (gs+ (*gs (unitg b) (- (sin (/ a 2))))
-       (cos (/ a 2))))
+  ;;(expbv (* (unitg b) (/ a -2))))
+  (+ (* (unitg b) (- (sin (/ a 2))))
+     (cos (/ a 2))))
 
 ;; Test functions
 (defmethod zerogp ((g g))
