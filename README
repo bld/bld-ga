@@ -1,8 +1,7 @@
-BLD-GA is a Common Lisp geometric algebra library.
-By default it uses BLD-NUM for numeric arithmetic functions.
-Use the package BLD-SYM to include generic functions for symbolic scalar coefficients.
-The "w/sym" macro from BLD-SYM uses a single Maxima process in the background, processing symbolic arithmetic via a socket connection.
-Otherwise, BLD-SYM calls Maxima multiple times (ie it's slow).
+BLD-GA is a Common Lisp geometric algebra library. It uses BLD-GEN for
+arithmetic functions re-defined as generic functions, with methods for
+scalars and certain geometric algebra objects. If BLD-GENSYM is
+loaded, symbolic scalars and coefficients can be used.
 
 References
 ==========
