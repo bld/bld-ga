@@ -1,5 +1,5 @@
 (defpackage :bld-ga
-  (:use :common-lisp :bld-utils)
+  (:use :common-lisp :bld-utils :lol)
   (:import-from :bld-linalg jacobi)
   (:shadowing-import-from :bld-gen
 			  + - * / expt
@@ -86,4 +86,14 @@
 	   :cube
 	   :expbv
 	   :rotor
-	   :zerogp))
+	   :zerogp
+	   :factormv
+	   :linearlambda
+	   :expand-mv-factors
+	   :determinant
+	   :basisi
+	   :basis
+	   :adjointvfun
+	   :adjointlambda
+	   :inverselambda))
+	   
