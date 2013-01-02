@@ -1,5 +1,5 @@
 (defpackage :bld-ga
-  (:use :common-lisp :bld-utils :lol)
+  (:use :common-lisp :bld-utils)
   (:import-from :bld-linalg jacobi)
   (:shadowing-import-from :bld-gen
 			  + - * / expt
