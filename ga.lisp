@@ -331,15 +331,15 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 
 (defmethod refl ((g g) (n g))
   "Reflect a GA object by vector (normalized)"
-  (*g n g (invv n)))
+  (*g3 n g (invv n)))
 
 (defmethod rot ((g g) (r g))
   "Rotate GA object by rotor (normalized)"
-  (bitmap-part (*g r g (invv r)) (bitmaps g)))
+  (*g3 r g (invv r)))
 
 (defmethod spin ((g g) (s g))
   "Spin a GA object by a spinor (not normalized)"
-  (bitmap-part (*g s g (revg s)) (bitmaps g)))
+  (*g3 s g (revg s)))
 
 ;; Norms, unit GA objects
 
