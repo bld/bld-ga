@@ -27,22 +27,6 @@
    (revtable :reader revtable)
    (bitmap :reader bitmap)))
 
-(defmacro defg (name dim &optional metric)
-  (let* ((size (expt 2 dim))
-	 (bitmap (apply #'vector (loop for b below size collect b))))
-    `(defclass ,name (g)
-       ((coef :initform (make-array ,size :initial-element 0))
-	(metric :allocation :class
-		:initform (make-metric ,metric))
-	(dimension :allocation :class
-		   :initform ,dim)
-	(size :allocation :class
-	      :initform ,size)
-	(revtable :allocation :class
-		  :initform (genrevtable ,dim))
-	(bitmap :allocation :class
-		:initform ,bitmap)))))
-
 (defmacro defgfun (class dim)
   "Make a GA object creation function of the given class & bitmap"
   (let* ((args (loop for b below (expt 2 dim)
@@ -50,6 +34,24 @@
 	 (args-key (mapcar #'(lambda (arg) (list arg 0)) args)))
     `(defun ,class (&key ,@args-key)
        (make-instance ',class :coef (vector ,@args)))))
+
+(defmacro defg (name dim &optional metric)
+  (let* ((size (expt 2 dim))
+	 (bitmap (apply #'vector (loop for b below size collect b))))
+    `(progn
+       (defclass ,name (g)
+	 ((coef :initform (make-array ,size :initial-element 0))
+	  (metric :allocation :class
+		  :initform (make-metric ,metric))
+	  (dimension :allocation :class
+		     :initform ,dim)
+	  (size :allocation :class
+		:initform ,size)
+	  (revtable :allocation :class
+		    :initform (genrevtable ,dim))
+	  (bitmap :allocation :class
+		  :initform ,bitmap)))
+       (defgfun ,name ,dim))))
 
 ;; Macros and functions to provide generic access to GA objects
 
