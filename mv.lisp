@@ -25,7 +25,9 @@
    (dimension :reader dimension)
    (size :reader size)
    (revtable :reader revtable)
-   (bitmap :reader bitmap)))
+   (bitmap :reader bitmap)
+   (unitvectors :reader unitvectors)
+   (basisblades :reader basisblades)))
 
 (defmacro defgfun (class dim)
   "Make a GA object creation function of the given class & bitmap"
@@ -35,9 +37,20 @@
     `(defun ,class (&key ,@args-key)
        (make-instance ',class :coef (vector ,@args)))))
 
-(defmacro defg (name dim &optional metric)
+(defun make-unitvector-map (&rest uvs)
+  "Make a lookup table of unit vector name vs dimension number according to order given"
+  (loop with unitvectors = (make-hash-table)
+     for uv in uvs
+     for i = 0 then (incf i)
+     do (setf (gethash uv unitvectors) (expt 2 i))
+     finally (return unitvectors)))
+
+(defmacro defg (name dim uvs &optional metric)
+  "Define a geometric algebra given the name, dimension, (unit
+vectors), and optional inner product metric (vector or 2D array)."
   (let* ((size (expt 2 dim))
-	 (bitmap (apply #'vector (loop for b below size collect b))))
+	 (bitmap (apply #'vector (loop for b below size collect b)))
+	 (uvargs (loop for uv in uvs collect (make-keyword uv))))
     `(progn
        (defclass ,name (g)
 	 ((coef :initform (make-array ,size :initial-element 0))
@@ -50,7 +63,9 @@
 	  (revtable :allocation :class
 		    :initform (genrevtable ,dim))
 	  (bitmap :allocation :class
-		  :initform ,bitmap)))
+		  :initform ,bitmap)
+	  (unitvectors :allocation :class
+		       :initform (make-unitvector-map ,@uvargs))))
        (defgfun ,name ,dim))))
 
 ;; Macros and functions to provide generic access to GA objects
