@@ -29,28 +29,37 @@
    (unitvectors :reader unitvectors)
    (basisblades :reader basisblades)))
 
-(defmacro defgfun (class dim)
+(defun make-basis-blades (unitvectors)
+  "Make a vector of basis blades as a list of unit vector from a vector of unit vectors. Position in the array - in binary - is the binary basis blade representation. Append unit vector symbols. S for scalar."
+  (let* ((dim (length unitvectors))
+	 (size (expt 2 dim))
+	 (bbs (make-array size)))
+    (dotimes (b size)
+      (setf (aref bbs b)
+	    (loop for i below dim
+	       unless (zerop (logand (expt 2 i) b))
+	       collect (aref unitvectors i))))
+    (map 'vector
+	 #'(lambda (b)
+	     (if b
+		 (intern (apply #'concatenate 'string (mapcar #'string b)))
+		 's))
+	 bbs)))
+
+(defmacro defgfun (class basisblades)
   "Make a GA object creation function of the given class & bitmap"
-  (let* ((args (loop for b below (expt 2 dim)
-		  collect (build-symbol c (:< (format nil "~b" b)))))
+  (let* ((args (map 'list #'identity basisblades))
 	 (args-key (mapcar #'(lambda (arg) (list arg 0)) args)))
     `(defun ,class (&key ,@args-key)
        (make-instance ',class :coef (vector ,@args)))))
 
-(defun make-unitvector-map (&rest uvs)
-  "Make a lookup table of unit vector name vs dimension number according to order given"
-  (loop with unitvectors = (make-hash-table)
-     for uv in uvs
-     for i = 0 then (incf i)
-     do (setf (gethash uv unitvectors) (expt 2 i))
-     finally (return unitvectors)))
-
-(defmacro defg (name dim uvs &optional metric)
+(defmacro defg (name unitvectors &optional metric)
   "Define a geometric algebra given the name, dimension, (unit
 vectors), and optional inner product metric (vector or 2D array)."
-  (let* ((size (expt 2 dim))
+  (let* ((dim (length unitvectors))
+	 (size (expt 2 dim))
 	 (bitmap (apply #'vector (loop for b below size collect b)))
-	 (uvargs (loop for uv in uvs collect (make-keyword uv))))
+	 (basisblades (make-basis-blades unitvectors)))
     `(progn
        (defclass ,name (g)
 	 ((coef :initform (make-array ,size :initial-element 0))
@@ -65,8 +74,10 @@ vectors), and optional inner product metric (vector or 2D array)."
 	  (bitmap :allocation :class
 		  :initform ,bitmap)
 	  (unitvectors :allocation :class
-		       :initform (make-unitvector-map ,@uvargs))))
-       (defgfun ,name ,dim))))
+		       :initform ,unitvectors)
+	  (basisblades :allocation :class
+		       :initform ,basisblades)))
+       (defgfun ,name ,basisblades))))
 
 ;; Macros and functions to provide generic access to GA objects
 
