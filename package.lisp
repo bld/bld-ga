@@ -42,14 +42,7 @@
 	   :graden
 	   :bitmaps
 	   :bitmap-part
-	   :gbc+
-	   :gs+
-	   :g2+ 
-	   :g+ 
-	   :g2-
-	   :*gs
-	   :/gs
-	   :g-
+	   :ga-coef+
 	   :*o2
 	   :*o
 	   :*o3
@@ -97,4 +90,3 @@
 	   :adjointvfun
 	   :adjointlambda
 	   :inverselambda))
-	   
