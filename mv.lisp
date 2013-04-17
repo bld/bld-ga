@@ -2,8 +2,6 @@
 
 ;; Symbolic GA multivector definition
 
-;;(export '(genrevtable g defg coef metric dimension size revtable bitmap defgfun gref gset w/g loopg collectg ong newg w/newg mapcg mapg cpg w/cpg))
-
 (defun revbsign (b)
   "Sign of reversing a basis bitmap"
   (expt -1 (* 1/2 (logcount b) (- (logcount b) 1))))
@@ -159,5 +157,5 @@ E.g. (makeg ve2 #b1 1 #b10 2)"
 (defmethod print-object ((g g) stream)
   (format stream "#<~a" (type-of g))
   (ong b c g
-    (format stream " <~a ~a>" (aref (basisblades g) b) c))
+    (format stream " :~a ~a" (aref (basisblades g) b) c))
   (format stream ">"))
