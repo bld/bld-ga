@@ -1,6 +1,6 @@
 (in-package :bld-ga)
 
-;; Grades
+;;; Grades
 
 (defmethod gradeb ((b integer))
   "Grade of a basis"
@@ -43,35 +43,23 @@
 		0))
 	g))
 
-;; Arithmetic (addition, subtractions, scalar multiplication)
+;;; Arithmetic (addition, subtractions, scalar multiplication)
 
-(defmethod gbc+ ((g g) (b integer) c)
-  "Add scalar C to GA object's B coefficient"
+;;; Addition
+
+(defmethod ga-coef+ ((g g) (b integer) c)
+  "Add scalar C to GA object's coefficient corresponfing to basis blade bitmap B"
   (mapg #'(lambda (bi ci)
 	    (if (= bi b)
 		(+ ci c)
 		ci))
 	g))
 
-(defmethod gs+ ((g g) s)
-  "Add GA object and scalar"
-  (gbc+ g 0 s))
-
-(defmethod g2+ ((g1 g) (g2 g))
-  "Add two GA objects"
-  (assert (typep g1 (type-of g2)))
-  (mapcg #'(lambda (c1 c2)
-	     (if (and (numberzerop c1) (numberzerop c2))
-		 0
-		 (+ c1 c2)))
-	 g1
-	 g2))
-
 (defmeth2 + ((g g) (s t))
-  (gbc+ g 0 s))
+  (ga-coef+ g 0 s))
 
 (defmeth2 + ((s t) (g g))
-  (gbc+ g 0 s))
+  (ga-coef+ g 0 s))
 
 (defmeth2 + ((g1 g) (g2 g))
   (mapcg #'(lambda (c1 c2)
@@ -80,19 +68,7 @@
 		 (+ c1 c2)))
 	 g1 g2))
 
-(defun g+ (&rest args)
-  "Add a series of GA objects"
-  (reduce #'g2+ args))
-
-(defmethod g2- ((g1 g) (g2 g))
-  "Subtract one GA object from another"
-  (assert (typep g1 (type-of g2)))
-  (mapcg #'(lambda (c1 c2)
-	     (if (and (numberzerop c1) (numberzerop c2))		      
-		 0
-		 (- c1 c2)))
-	 g1
-	 g2))
+;;; Subtraction
 
 (defmeth2 - ((g g) (s t))
   (+ g (- s)))
@@ -109,9 +85,7 @@
 	 g1
 	 g2))
 
-(defmethod *gs ((g g) s)
-  "Multiply GA object by a scalar"
-  (mapcg #'(lambda (c) (* c s)) g))
+;;; Scalar multiplication
 
 (defmeth2 * ((g g) (s t))
   (mapcg #'(lambda (c) (* c s)) g))
@@ -119,23 +93,17 @@
 (defmeth2 * ((s t) (g g))
   (mapcg #'(lambda (c) (* s c)) g))
 
-(defmethod /gs ((g g) s)
-  "Divide GA object by a scalar"
-  (mapcg #'(lambda (c) (/ c s)) g))
+;;; Scalar division
 
 (defmeth2 / ((g g) (s t))
   (mapcg #'(lambda (c) (/ c s)) g))
 
-(defun g- (arg1 &rest args)
-  "If 1 arg, negate. Otherwise, subtract the rest of the arguments from 1st."
-  (if args
-      (reduce #'g2- (cons arg1 args))
-      (*gs arg1 -1)))
+;;; Negation
 
 (defmeth1 - ((g g))
   (* g -1))
 
-;; Multiplication
+;;; Geometric Multiplication
 
 (defun reordersign (a b)
   "Count # of swaps to reach canonical form for geometric product of 2 basis blades represented, in binary, as integers
@@ -159,68 +127,68 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
      unless (zerop (logand meet 1)) do (setq pairsign (* pairsign sigi))
      finally (return pairsign)))
 
-(defmacro defgpe (name ebfn doc)
+(defmacro defgpe (name euclidean-bitmap-fn doc)
   "Define derived geometric product function on a Euclidean basis given name, euclidean function of bitmaps, and documentation string"
   `(defmethod ,name ((g1 g) (g2 g))
      ,doc
      (w/newg g3 g1
        (ong b1 c1 g1
 	 (ong b2 c2 g2
-	   (multiple-value-bind (b3 sign) (,ebfn b1 b2)
-	     (setq g3 (gbc+ g3 b3 (* sign (* c1 c2))))))))))
+	   (multiple-value-bind (b3 sign) (,euclidean-bitmap-fn b1 b2)
+	     (setq g3 (ga-coef+ g3 b3 (* sign (* c1 c2))))))))))
 
-(defmacro defgpo (name obfn doc)
+(defmacro defgpo (name orthogonal-bitmap-fn doc)
   "Define a derived geometric product function on an orthogonal basis given name, orthogonal function of bitmaps & metric, and documentation string"
   `(defmethod ,name ((g1 g) (g2 g) (m vector))
      ,doc
      (w/newg g3 g1
        (ong b1 c1 g1
 	 (ong b2 c2 g2
-	   (multiple-value-bind (b3 sign) (,obfn b1 b2 m)
-	     (setq g3 (gbc+ g3 b3 (* sign (* c1 c2))))))))))
+	   (multiple-value-bind (b3 sign) (,orthogonal-bitmap-fn b1 b2 m)
+	     (setq g3 (ga-coef+ g3 b3 (* sign (* c1 c2))))))))))
 
 ;; Bitmap products (Euclidean & orthogonal)
 
 (defun *gbe (b1 b2)
-  "Euclidean geometric product of bitmaps"
+  "Geometric product of basis blade bitmaps in Euclidean space"
   (values (logxor b1 b2)
 	  (reordersign b1 b2)))
 
 (defun *ob (b1 b2)
-  "Outer product of bitmaps (Euclidean, orthogonal, and non-orthogonal)"
+  "Outer product of basis blade bitmaps (Euclidean, orthogonal, and non-orthogonal spaces)"
   (if (not (zerop (logand b1 b2)))
       (values 0 0)
       (*gbe b1 b2)))
 
 (defun *gbo (b1 b2 m)
-  "Geometric product of bitmaps with orthogonal metric"
+  "Geometric product of basis blade bitmaps in orthogonal space with vector metric"
   (values (logxor b1 b2)
 	  (* (reordersign b1 b2)
 	     (pairsign b1 b2 m))))
 
 (defun *ibe (b1 b2)
-  "Inner product of bitmaps with Euclidean metric"
+  "Inner product of basis blade bitmaps in Euclidean space"
   (multiple-value-bind (basis sign) (*gbe b1 b2)
     (if (= (gradeb basis) (- (gradeb b2) (gradeb b1)))
 	(values basis sign)
 	(values 0 0))))
 
 (defun *ibo (b1 b2 m)
-  "Inner product of bitmaps with orthogonal metric"
+  "Inner product of basis blade bitmaps in orthogonal space with vector metric"
   (multiple-value-bind (basis sign) (*gbo b1 b2 m)
     (if (= (gradeb basis) (- (gradeb b2) (gradeb b1)))
 	(values basis sign)
 	(values 0 0))))
 
 (defun *cbe (b1 b2)
-  "Commutator product of 2 basis blades in Euclidean space"
+  "Commutator product of basis blade bitmaps in Euclidean space"
   (let ((s1 (* (reordersign b1 b2)))
 	(s2 (* (reordersign b2 b1)))
 	(basis (logxor b1 b2)))
     (values basis (/ (- s1 s2) 2))))
 
 (defun *cbo (b1 b2 m)
-  "Commutator product of 2 basis blades & vector metric in orthogonal space"
+  "Commutator product of basis blade bitmaps in orthogonal space with vector metric"
   (let ((s1 (* (reordersign b1 b2) (pairsign b1 b2 m)))
 	(s2 (* (reordersign b2 b1) (pairsign b2 b1 m)))
 	(basis (logxor b1 b2)))
@@ -228,9 +196,9 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 
 ;; Outer product
 
-(defgpe *o2 *ob "Outer product of 2 GA objects. Euclidean, orthogonal, & non-orthogonal metrics.")
-(defun *o (&rest args) "Outer product" (reduce #'*o2 args))
-(defmethod *o3 ((g1 g)(g2 g)(g3 g)) "Outer product of 3 GA objects" (*o g1 g2 g3))
+(defgpe *o2 *ob "Outer product of 2 GA objects (Euclidean, orthogonal, & non-orthogonal spaces)")
+(defun *o (&rest args) "Outer product of GA objects (all spaces)" (reduce #'*o2 args))
+(defmethod *o3 ((g1 g)(g2 g)(g3 g)) "Outer product of 3 GA objects (all spaces)" (*o g1 g2 g3))
 
 ;; Non-orthogonal products
 
@@ -271,14 +239,14 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 
 ;; Define other geometric products
 
-(defmacro defgp (name efn ofn nofn doc)
+(defmacro defgp (name euclid-fn orth-fn nonorth-fn doc)
   "Define derived geometric product given Euclidean, orthogonal, and non-orthogonal functions."
   `(defmethod ,name ((g1 g) (g2 g))
      ,doc
      (typecase (metric g1)
-       (null (,efn g1 g2))
-       (vector (,ofn g1 g2 (metric g1)))
-       (metric (,nofn g1 g2 (metric g1))))))
+       (null (,euclid-fn g1 g2))
+       (vector (,orth-fn g1 g2 (metric g1)))
+       (metric (,nonorth-fn g1 g2 (metric g1))))))
 
 (defgpe *g2e *gbe "Geometric product with Euclidean metric")
 (defgpo *g2o *gbo "Geometric product with orthogonal metric")
@@ -462,7 +430,8 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
   (+ (* (unitg b) (- (sin (/ a 2))))
      (cos (/ a 2))))
 
-;; Test functions
+;;; Test functions
+
 (defmethod zerogp ((g g))
   "Test if GA object is zero"
   (null (grade g)))
