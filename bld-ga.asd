@@ -9,5 +9,6 @@
    (:file "metric" :depends-on ("package"))
    (:file "mv" :depends-on ("metric"))
    (:file "ga" :depends-on ("mv"))
-   (:file "linear" :depends-on ("ga"))))
+   (:file "linear" :depends-on ("ga"))
+   (:file "eg" :depends-on ("linear"))))
 
