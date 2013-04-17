@@ -34,17 +34,15 @@
   (let* ((dim (length unitvectors))
 	 (size (expt 2 dim))
 	 (bbs (make-array size)))
-    (dotimes (b size)
+    (dotimes (b size) ; iterate over all basis bitmap blades
       (setf (aref bbs b)
-	    (loop for i below dim
-	       unless (zerop (logand (expt 2 i) b))
-	       collect (aref unitvectors i))))
-    (map 'vector
-	 #'(lambda (b)
-	     (if b
-		 (intern (apply #'concatenate 'string (mapcar #'string b)))
-		 's))
-	 bbs)))
+	    (loop for i below dim ; iterate over dimensions
+	       unless (zerop (logand (expt 2 i) b)) ; collect if unit vector bitmap (expt 2 i) in basis blade bitmap
+	       collect (aref unitvectors i) into bb
+	       finally (return (if bb
+				   (intern (apply #'concatenate 'string (mapcar #'string bb)))
+				   's)))))
+    bbs))
 
 (defmacro defgfun (class basisblades)
   "Make a GA object creation function of the given class & bitmap"
@@ -161,5 +159,5 @@ E.g. (makeg ve2 #b1 1 #b10 2)"
 (defmethod print-object ((g g) stream)
   (format stream "#<~a" (type-of g))
   (ong b c g
-    (format stream " #b~b ~a" b c))
+    (format stream " <~a ~a>" (aref (basisblades g) b) c))
   (format stream ">"))
