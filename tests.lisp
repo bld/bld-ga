@@ -117,19 +117,42 @@
   (is (= (grade (e2 :e1 1)) 1))
   (is (= (grade (e2 :e1e2 1)) 2)))
 
-(test grades)
+(test grades
+  (is (null (grades (e2))))
+  (is (equal (grades (e2 :s 1 :e1 2 :e2 3 :e1e2 4))
+	     (list 0 1 2))))
 
-(test graden)
+(test graden
+  (let ((g (e2 :s 1 :e1 2 :e2 3 :e1e2 4)))
+    (is (equalg (graden g 0) (e2 :s 1)))
+    (is (equalg (graden g 1) (e2 :e1 2 :e2 3)))
+    (is (equalg (graden g 2) (e2 :e1e2 4)))))
 
-(test bitmaps)
+(test bitmaps
+  (is (null (bitmaps (e2))))
+  (is (equal (bitmaps (e2 :s 1 :e1 2 :e2 3 :e1e2 4))
+	     (list #b0 #b1 #b10 #b11))))
 
-(test bitmap-part)
+(test bitmap-part
+  (is (equalg (bitmap-part (e2 :s 1) (list #b1 #b10 #b11)) (e2)))
+  (let ((g (e2 :s 1 :e1 2 :e2 3 :e1e2 4)))
+    (is (equalg (bitmap-part g (list #b0 #b1 #b10 #b11)) g))))
+    
+(test +
+  (is (equalg (+ (e2) (e2)) (e2)))
+  (is (equalg (+ (e2) 1) (e2 :s 1)))
+  (is (equalg (+ (e2 :s 1 :e1 2)
+		 (e2 :e2 3 :e1e2 4))
+	      (e2 :s 1 :e1 2 :e2 3 :e1e2 4))))
 
-(test ga-coef+)
-
-(test +)
-
-(test -)
+(test -
+  (let ((g (e2 :s 1 :e1 2 :e2 3 :e1e2 4)))
+    (is (equalg (- (e2)) (e2)))
+    (is (equalg (- g)
+		(e2 :s -1 :e1 -2 :e2 -3 :e1e2 -4)))
+    (is (equalg (- g g) (e2)))
+    (is (equalg (- g 1) (e2 :e1 2 :e2 3 :e1e2 4)))
+    (is (equalg (- 1 g) (e2 :e1 -2 :e2 -3 :e1e2 -4)))))
 
 (test *)
 
