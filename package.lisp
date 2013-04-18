@@ -92,4 +92,9 @@
 	   :basis
 	   :adjointvfun
 	   :adjointlambda
-	   :inverselambda))
+	   :inverselambda
+	   :e2
+	   :e3
+	   :h3
+	   :c2
+	   :c3))
