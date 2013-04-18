@@ -214,8 +214,8 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 		 for mji = (aref m j i)
 		 do (unless (zerop mji)
 		      (ong alb alc al
-			(setq tmp (g2+ tmp (*o2 (makeg class alb alc) 
-						(makeg class (ash 1 j) mji)))))))
+			(setq tmp (+ tmp (*o2 (makeg class alb alc) 
+					      (makeg class (ash 1 j) mji)))))))
 	      (setq al tmp))))
     al))
 
@@ -223,13 +223,13 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
   "Transform non-orthogonal GA object to from metric to eigen basis"
   (w/newg out a
     (ong b c a
-      (setq out (g2+ out (transform (type-of a) b c (inveigmatrix m) (dimension a)))))))
+      (setq out (+ out (transform (type-of a) b c (inveigmatrix m) (dimension a)))))))
 
 (defun tometricbasis (a m)
   "Transform non-orthogonal GA object back to metric from eigen basis"
   (w/newg out a
     (ong b c a
-      (setq out (g2+ out (transform (type-of a) b c (eigmatrix m) (dimension a)))))))
+      (setq out (+ out (transform (type-of a) b c (eigmatrix m) (dimension a)))))))
 
 (defmacro defgpno (name ofn doc)
   "Define derived geometric product on non-orthogonal basis given name, corresponding orthogonal function of MVs & vector metric, and documentation string"
@@ -293,7 +293,7 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 
 (defmethod invv ((g g))
   "Inverse of a versor"
-  (/gs (revg g) (scalar (*g2 g (revg g)))))
+  (/ (revg g) (scalar (*g2 g (revg g)))))
 
 ;; Reflection/rotation
 
@@ -343,11 +343,11 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 
 (defmethod unitg ((g g))
   "Unitize"
-  (/gs g (norme g)))
+  (/ g (norme g)))
 
 (defun recipbv (j &rest bvs)
   "jth reciprocal basis vector"
-  (*gs (*g2 (apply #'*o (remove-nth j bvs))
+  (* (*g (apply #'*o (remove-nth j bvs))
 	    (apply #'*o bvs))
        (expt -1 (1- j))))
 
