@@ -23,18 +23,6 @@
   (and (equal (type-of a) (type-of b))
        (every #'(lambda (a b) (almost= a b eps)) (coef a) (coef b))))
 
-(defg e2 #(e1 e2))
-
-(defg e3 #(e1 e2 e3))
-
-(defg h3 #(e0 e1 e2 e3))
-
-(defg c3 #(no e1 e2 e3 ni) #2a((0 0 0 0 -1)
-			       (0 1 0 0 0)
-			       (0 0 1 0 0)
-			       (0 0 0 1 0)
-			       (-1 0 0 0 0)))
-
 ;;; metric.lisp tests
 
 (test metric
@@ -154,25 +142,82 @@
     (is (equalg (- g 1) (e2 :e1 2 :e2 3 :e1e2 4)))
     (is (equalg (- 1 g) (e2 :e1 -2 :e2 -3 :e1e2 -4)))))
 
-(test *)
+(test *
+  (let ((g (e2 :s 1 :e1 2 :e2 3 :e1e2 4)))
+    (is (equalg (* g 2) (e2 :s 2 :e1 4 :e2 6 :e1e2 8)))
+    (is (equalg (* 2 g) (e2 :s 2 :e1 4 :e2 6 :e1e2 8)))
+    (is (equalg (* g 0) (e2)))))
 
-(test /)
+(test /
+  (let ((g (e2 :s 2 :e1 4 :e2 6 :e1e2 8)))
+    (is (equalg (/ g 2) (e2 :s 1 :e1 2 :e2 3 :e1e2 4)))))
 
-(test *o)
+(test *o
+  (is (equalg (*o (e2) (e2)) (e2)))
+  (is (equalg (*o (e2 :s 2) (e2 :s 3)) (e2 :s 6)))
+  (is (equalg (*o (e2 :e1 2) (e2 :e2 3)) (e2 :e1e2 6)))
+  (is (equalg (*o (e2 :e2 2) (e2 :e1 3)) (e2 :e1e2 -6)))
+  (is (equalg (*o (e2 :e1 1) (e2 :e1 1)) (e2)))
+  (is (equalg (*o (e2 :e1 1) (e2 :e1e2 1)) (e2))))
 
-(test *g)
+(test *g
+  ;; E2
+  (is (equalg (*g (e2) (e2)) (e2)))
+  (is (equalg (*g (e2 :s 1) (e2 :s 1)) (e2 :s 1)))
+  (is (equalg (*g (e2 :s 1) (e2 :e1 1)) (e2 :e1 1)))
+  (is (equalg (*g (e2 :e1 1) (e2 :e1 1)) (e2 :s 1)))
+  (is (equalg (*g (e2 :e1 1) (e2 :e2 1)) (e2 :e1e2 1)))
+  (is (equalg (*g (e2 :e1 1) (e2 :e1e2 1)) (e2 :e2 1)))
+  (is (equalg (*g (e2 :e1e2 1) (e2 :e1e2 1)) (e2 :s -1)))
+  ;; C3
+  (is (equalg (*g (c3 :no 1) (c3 :ni 1)) (c3 :s -1 :noni 1) 1d-6))
+  (is (equalg (*g (c3 :no 1) (c3 :no 1)) (c3)))
+  (is (equalg (*g (c3 :ni 1) (c3 :ni 1)) (c3))))
 
-(test *i)
+(test *i
+  ;; E2
+  (is (equalg (*i (e2 :s 1) (e2 :s 1)) (e2 :s 1)))
+  (is (equalg (*i (e2 :s 2) (e2 :e1 1)) (e2 :e1 2)))
+  (is (equalg (*i (e2 :e1 1) (e2 :s 2)) (e2)))
+  (is (equalg (*i (e2 :e1 1) (e2 :e1 1)) (e2 :s 1)))
+  (is (equalg (*i (e2 :e1 1) (e2 :e2 1)) (e2)))
+  (is (equalg (*i (e2 :e1 1) (e2 :e1e2 1)) (e2 :e2 1)))
+  (is (equalg (*i (e2 :e1e2 1) (e2 :e1 1)) (e2)))
+  (is (equalg (*i (e2 :e2 1) (e2 :e1e2 1)) (e2 :e1 -1)))
+  (is (equalg (*i (e2 :e1e2 1) (e2 :e1e2 1)) (e2 :s -1)))
+  ;; E3
+  (is (equalg (*i (e3 :e1 1) (e3 :e1e2e3 1)) (e3 :e2e3 1)))
+  (is (equalg (*i (e3 :e2 1) (e3 :e1e2e3 1)) (e3 :e1e3 -1)))
+  (is (equalg (*i (e3 :e1e2 1) (e3 :e1e2e3 1)) (e3 :e3 -1)))
+  (is (equalg (*i (e3 :e1e2e3 1) (e3 :e1e2e3 1)) (e3 :s -1)))
+  ;; C3
+  (is (equalg (*i (c3 :no 1) (c3 :e1 1)) (c3)))
+  (is (equalg (*i (c3 :no 1) (c3 :ni 1)) (c3 :s -1) 1d-6))
+  (is (equalg (*i (c3 :ni 1) (c3 :no 1)) (c3 :s -1) 1d-6))
+  (is (equalg (*i (c3 :no 1) (c3 :no 1)) (c3)))
+  (is (equalg (*i (c3 :ni 1) (c3 :ni 1)) (c3))))
 
-(test *c)
+(test *c
+  (let ((a (e3 :s 1 :e1 2 :e2 3 :e3 4 :e1e2 5 :e2e3 6 :e1e3 7 :e1e2e3 8))
+	(b (e3 :s 9 :e1 10 :e2 11 :e3 12 :e1e2 13 :e2e3 14 :e1e3 15 :e1e2e3 16)))
+    (is (equalg (*c a b) (/ (- (*g a b) (*g b a)) 2)))))
 
-(test scalar)
+(test scalar
+  (is (= (scalar (e2 :s 1 :e1 2 :e2 3 :e1e2 4)) 1))
+  (is (zerop (scalar (e2 :e1 2 :e2 3 :e1e2 4)))))
 
-(test *s)
+(test *s
+  (let ((a (e2 :s 1 :e1 2 :e2 3 :e1e2 4))
+	(b (e2 :s 5 :e1 6 :e2 7 :e1e2 8)))
+    (is (= (*s a b) (+ (* 1 5) (* 2 6) (* 3 7) (- (* 4 8)))))))
 
-(test revg)
+(test revg
+  (is (equalg (revg (e2 :s 1 :e1 2 :e2 3 :e1e2 4))
+	      (e2 :s 1 :e1 2 :e2 3 :e1e2 -4))))
 
-(test invv)
+(test invv
+  (let ((g (e3 :s 1 :e1e2 5 :e2e3 6 :e1e3 7)))
+    (is (equalg (*g g (invv g)) (e3 :s 1)))))
 
 (test refl)
 
