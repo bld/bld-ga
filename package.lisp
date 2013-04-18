@@ -42,7 +42,10 @@
 	   :graden
 	   :bitmaps
 	   :bitmap-part
-	   :ga-coef+
+	   :+
+	   :-
+	   :*
+	   :/
 	   :*o2
 	   :*o
 	   :*o3
