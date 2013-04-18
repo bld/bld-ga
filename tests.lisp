@@ -219,7 +219,11 @@
   (let ((g (e3 :s 1 :e1e2 5 :e2e3 6 :e1e3 7)))
     (is (equalg (*g g (invv g)) (e3 :s 1)))))
 
-(test refl)
+(test reflectline
+  (is (equalg (reflectline (e2 :e1 1 :e2 2) (e2 :e1 1)) (e2 :e1 1 :e2 -2))))
+
+(test reflectplane
+  (is (equalg (reflectplane (e2 :e1 1 :e2 2) (e2 :e1 1)) (e2 :e1 -1 :e2 2))))
 
 (test rot)
 

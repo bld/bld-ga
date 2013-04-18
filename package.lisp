@@ -64,7 +64,8 @@
 	   :*s3
 	   :revg
 	   :invv
-	   :refl
+	   :reflectline
+	   :reflectplane
 	   :rot
 	   :spin
 	   :normr2
