@@ -74,7 +74,7 @@
   (+ g (- s)))
 
 (defmeth2 - ((s t) (g g))
-  (+ (- s) g))
+  (+ s (- g)))
 
 (defmeth2 - ((g1 g) (g2 g))
   (assert (typep g1 (type-of g2)))
