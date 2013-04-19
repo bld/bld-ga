@@ -225,10 +225,36 @@
 (test reflectplane
   (is (equalg (reflectplane (e2 :e1 1 :e2 2) (e2 :e1 1)) (e2 :e1 -1 :e2 2))))
 
-(test rot)
+(test rotor
+  (is (equalg (rotor (e3 :e1e2 1 :e2e3 1 :e1e3 1) 0) (e3 :s 1)))
+  (is (equalg (rotor (e3 :e1e2 1) (/ pi 2)) 
+	      (e3 :s (cos (/ pi 4)) :e1e2 (- (sin (/ pi 4))))
+	      1d-6))
+  (is (equalg (rotor (e3 :e1e2 1 :e2e3 1 :e1e3 1) (/ pi 4))
+	      (e3 :s (cos (/ pi 8)) 
+		  :e1e2 (/ (- (sin (/ pi 8))) (sqrt 3))
+		  :e2e3 (/ (- (sin (/ pi 8))) (sqrt 3))
+		  :e1e3 (/ (- (sin (/ pi 8))) (sqrt 3))) 
+	      1d-6)))
 
-(test spin)
+(test rotate
+  (let ((g (e3 :e1 1 :e2 2 :e3 3)))
+    (is (equalg (rotate g (rotor (e3 :e1e2 1 :e2e3 1 :e1e3 1) 0)) g))
+    (is (equalg (rotate g (rotor (e3 :e1e2 1) (/ pi 2))) 
+		(e3 :e1 -2 :e2 1 :e3 3) 
+		1d-6))
+    (is (equalg (rotate g (rotor (e3 :e1e2 1) (/ pi 4)))
+		(e3 :e1 (/ (- 1 2) (sqrt 2d0))
+		    :e2 (/ (+ 1 2) (sqrt 2))
+		    :e3 3)
+		1d-6))))
 
+(test spin
+  (let* ((g (e3 :e1 1 :e2 2 :e3 3))
+	 (r 2)
+	 (s (* (sqrt r) (rotor (e3 :e1e2 1 :e2e3 2 :e1e3 3) (/ pi 4)))))
+    (is (equalg (spin g s) (* r (rotate g s)) 1d-6))))
+    
 (test normr2)
 
 (test normr)
@@ -258,8 +284,6 @@
 (test cube)
 
 (test expbv)
-
-(test rotor)
 
 (test zerogp)
 

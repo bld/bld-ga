@@ -305,7 +305,7 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
   "Reflect a GA object in plane defined by normal vector"
   (- (reflectline g n)))
 
-(defmethod rot ((g g) (r g))
+(defmethod rotate ((g g) (r g))
   "Rotate GA object by rotor (normalized)"
   (*g3 r g (invv r)))
 
@@ -428,6 +428,7 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 	       do (setq bout (*g2 bout bout))
 	       (setq scale (ash scale -1)))
 	  bout))))
+
 (defmethod rotor ((b g) a)
   "Create a rotor given a bivector (rotation plane) and angle"
   ;;(expbv (* (unitg b) (/ a -2))))

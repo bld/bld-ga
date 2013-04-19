@@ -1,5 +1,5 @@
 (defpackage :bld-ga
-  (:use :common-lisp :bld-utils :alexandria)
+  (:use :common-lisp :bld-utils)
   (:import-from :bld-linalg jacobi)
   (:shadowing-import-from :bld-gen
 			  + - * / expt
@@ -66,7 +66,7 @@
 	   :invv
 	   :reflectline
 	   :reflectplane
-	   :rot
+	   :rotate
 	   :spin
 	   :normr2
 	   :normr
