@@ -255,9 +255,15 @@
 	 (s (* (sqrt r) (rotor (e3 :e1e2 1 :e2e3 2 :e1e3 3) (/ pi 4)))))
     (is (equalg (spin g s) (* r (rotate g s)) 1d-6))))
     
-(test normr2)
+(test normr2
+  ;; Need more here
+  (is (zerop (normr2 (e2))))
+  (is (= (normr2 (e2 :s 1 :e1 1 :e2 1 :e1e2 1)) 4)))
 
-(test normr)
+(test normr
+  ;; Need more here
+  (is (zerop (normr (e2))))
+  (is (= (normr (e2 :s 1 :e1 1 :e2 1 :e1e2 1)) 2)))
 
 (test norme2)
 
