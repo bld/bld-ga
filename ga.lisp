@@ -93,6 +93,12 @@
 (defmeth2 * ((s t) (g g))
   (mapcg #'(lambda (c) (* s c)) g))
 
+(defmeth2 * ((g g) (s rational))
+  (mapcg #'(lambda (c) (* c s)) g))
+
+(defmeth2 * ((s rational) (g g))
+  (mapcg #'(lambda (c) (* s c)) g))
+
 ;;; Scalar division
 
 (defmeth2 / ((g g) (s t))
