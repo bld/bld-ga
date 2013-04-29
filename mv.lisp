@@ -25,7 +25,8 @@
    (revtable :reader revtable)
    (bitmap :reader bitmap)
    (unitvectors :reader unitvectors)
-   (basisblades :reader basisblades)))
+   (basisblades :reader basisblades)
+   (basisbladekeys :reader basisbladekeys)))
 
 (defun make-basis-blades (unitvectors)
   "Make a vector of basis blades as a list of unit vector from a vector of unit vectors. Position in the array - in binary - is the binary basis blade representation. Append unit vector symbols. S for scalar."
@@ -55,7 +56,8 @@ vectors), and optional inner product metric (vector or 2D array)."
   (let* ((dim (length unitvectors))
 	 (size (expt 2 dim))
 	 (bitmap (apply #'vector (loop for b below size collect b)))
-	 (basisblades (make-basis-blades unitvectors)))
+	 (basisblades (make-basis-blades unitvectors))
+	 (basisbladekeys (map 'vector #'make-keyword basisblades)))
     `(progn
        (defclass ,name (g)
 	 ((coef :initform (make-array ,size :initial-element 0))
@@ -72,10 +74,20 @@ vectors), and optional inner product metric (vector or 2D array)."
 	  (unitvectors :allocation :class
 		       :initform ,unitvectors)
 	  (basisblades :allocation :class
-		       :initform ,basisblades)))
+		       :initform ,basisblades)
+	  (basisbladekeys :allocation :class
+			  :initform ,basisbladekeys)))
        (defgfun ,name ,basisblades))))
 
-;; Macros and functions to provide generic access to GA objects
+;;; Macros and functions to provide generic access to GA objects
+
+(defmethod gref ((g g) (bb symbol))
+  "Reference GA object by basis blade keyword name"
+  (aref (coef g) (position bb (basisbladekeys g))))
+
+(defmethod gset ((g g) (bb symbol) val)
+  "Set GA object of given basis blade keyword name to value"
+  (setf (aref (coef g) (position bb (basisbladekeys g))) val))
 
 (defmethod gref ((g g) (bb integer))
   "Reference GA object by basis blade bitmap"

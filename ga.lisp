@@ -275,7 +275,7 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 
 (defmethod scalar ((g g))
   "Scalar part of GA object"
-  (gref g 0))
+  (gref g :s))
 
 (defmethod *s2 ((g1 g) (g2 g))
   "Scalar product of 2 GA objects"

@@ -1,6 +1,7 @@
 (defpackage :bld-ga
   (:use :common-lisp :bld-utils)
   (:import-from :bld-linalg jacobi)
+  (:import-from :alexandria make-keyword)
   (:shadowing-import-from :bld-gen
 			  + - * / expt
 			  sin cos tan
@@ -22,6 +23,8 @@
 	   :revtable
 	   :bitmap
 	   :unitvectors
+	   :basisblades
+	   :basisbladekeys
 	   :defgfun
 	   :gref
 	   :gset

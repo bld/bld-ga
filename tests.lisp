@@ -55,14 +55,18 @@
 	     #(1 2 3 4 5 6 7 8))))
 
 (test gref
-  (signals (error "GREF out of bounds didn't signal an error") (gref (e2) #b111))
-  (is (= (gref (e2 :s 1) #b0) 1))
-  (is (= (gref (e2 :s 1) #b1) 0)))
+  (signals (error "GREF out of bounds didn't signal an error") (gref (e2) :e1e2e3))
+  (is (= (gref (e2 :s 1) :s) 1))
+  (is (= (gref (e2 :s 1) :e1) 0))
+  (is (= (gref (e2 :s 1) #b0) 1)))
 
 (test gset
   (is (let ((g (e2)))
-	(gset g #b0 1)
-	(= (gref g #b0) 1)))
+	(gset g :s 1)
+	(= (gref g :s) 1)))
+  (is (let ((g (e2)))
+	(setf (gref g :s) 1)
+	(= (gref g :s) 1)))
   (is (let ((g (e2)))
 	(setf (gref g #b0) 1)
 	(= (gref g #b0) 1))))
@@ -70,8 +74,8 @@
 (test w/g
   (is (typep (w/g g 'e2) 'e2))
   (is (= (gref (w/g g 'e2
-		 (setf (gref g #b0) 1))
-	       #b0) 1)))
+		 (setf (gref g :s) 1))
+	       :s) 1)))
 
 (test loopg)
 
