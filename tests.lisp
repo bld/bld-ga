@@ -52,7 +52,8 @@
   (is (every #'zerop (coef (e3))))
   (is (every #'= (coef (e2 :s 1 :e1 2 :e2 3 :e1e2 4)) #(1 2 3 4)))
   (is (every #'= (coef (e3 :s 1 :e1 2 :e2 3 :e1e2 4 :e3 5 :e1e3 6 :e2e3 7 :e1e2e3 8))
-	     #(1 2 3 4 5 6 7 8))))
+	     #(1 2 3 4 5 6 7 8)))
+  (is (equalg (make-instance 'e2 :coef #(1 2 3 4)) (e2 :s 1 :e1 2 :e2 3 :e1e2 4))))
 
 (test gref
   (signals (error "GREF out of bounds didn't signal an error") (gref (e2) :e1e2e3))
@@ -77,23 +78,63 @@
 		 (setf (gref g :s) 1))
 	       :s) 1)))
 
-(test loopg)
+(test loopg
+  (is (equal
+       (loopg b c (e2 :s 1 :e1 2 :e2 3 :e1e2 4)
+	  collect (list b c))
+       '((#b0 1)
+	 (#b1 2)
+	 (#b10 3)
+	 (#b11 4)))))	 
 
-(test collectg)
+(test collectg
+  (is (equal
+       (collectg b c (e2 :s 1 :e1 2 :e2 3 :e1e2 4)
+		 (list b c))
+       '((#b0 1)
+	 (#b1 2)
+	 (#b10 3)
+	 (#b11 4)))))  
 
-(test ong)
+(test ong
+  (is (let (gcoef)
+	(ong b c (e2 :e1 1 :e2 2)
+	  (push c gcoef))
+	(equal gcoef '(2 1)))))       
 
-(test newg)
+(test newg
+  (is (equalg (newg (e2 :s 1)) (e2))))
 
-(test w/newg)
+(test w/newg
+  (is (equalg (w/newg g (e2 :s 1)) (e2)))
+  (is (equalg (w/newg g (e2) 
+		(setf (gref g :s) 1)) 
+	      (e2 :s 1))))
 
-(test mapcg)
+(test mapcg
+  (is (equalg (mapcg #'identity (e2 :s 1)) (e2 :s 1)))
+  (is (equalg (mapcg #'+ (e2 :s 1 :e1 2) (e2 :e1 3)) (e2 :s 1 :e1 5))))
 
-(test cpg)
+(test mapg
+  (is (equalg (mapg #'(lambda (b c) (+ (* 0 b) c)) (e2 :e1 1 :e2 2)) (e2 :e1 1 :e2 2)))
+  (is (equalg (mapg #'(lambda (b c) (if (evenp b) c 0))
+		    (e2 :s 1 :e1 2 :e2 3 :e1e2 4))
+	      (e2 :s 1 :e2 3))))
 
-(test w/cpg)
+(test cpg
+  (is (equalg (cpg (e2 :s 1 :e1 2 :e2 3 :e1e2 4))
+	      (e2 :s 1 :e1 2 :e2 3 :e1e2 4))))
 
-(test makeg)
+(test w/cpg
+  (is (equalg (w/cpg g (e2 :e1 2)) (e2 :e1 2)))
+  (is (equalg (w/cpg g (e2 :e1 2)
+		(ong b c g
+		  (setf (gref g b) (* 2 c))))
+	      (e2 :e1 4))))
+
+(test makeg
+  (is (equalg (makeg 'e2) (e2)))
+  (is (equalg (makeg 'e2 :s 1 :e1 2) (e2 :s 1 :e1 2))))
 
 ;;; ga.lisp tests
 
