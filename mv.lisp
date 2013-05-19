@@ -33,7 +33,7 @@
   (let* ((dim (length unitvectors))
 	 (size (expt 2 dim))
 	 (bbs (make-array size)))
-    (dotimes (b size) ; iterate over all basis bitmap blades
+   #| (dotimes (b size) ; iterate over all basis bitmap blades
       (setf (aref bbs b)
 	    (loop for i below dim ; iterate over dimensions
 	       unless (zerop (logand (expt 2 i) b)) ; collect if unit vector bitmap (expt 2 i) in basis blade bitmap
@@ -41,11 +41,18 @@
 	       finally (return (if bb
 				   (intern (apply #'concatenate 'string (mapcar #'string bb)))
 				   's)))))
-    bbs))
+    bbs))|#
+    (loop for b below size
+       collect (loop for i below dim
+		  unless (zerop (logand (expt 2 i) b))
+		  collect (nth i unitvectors) into bb
+		  finally (return (if bb
+				      (intern (apply #'concatenate 'string (mapcar #'string bb)))
+				      's))))))
 
 (defmacro defgfun (class basisblades)
   "Make a GA object creation function of the given class & bitmap"
-  (let* ((args (map 'list #'identity basisblades))
+  (let* ((args basisblades)
 	 (args-key (mapcar #'(lambda (arg) (list arg 0)) args)))
     `(defun ,class (&key ,@args-key)
        (make-instance ',class :coef (vector ,@args)))))
@@ -57,7 +64,7 @@ vectors), and optional inner product metric (vector or 2D array)."
 	 (size (expt 2 dim))
 	 (bitmap (apply #'vector (loop for b below size collect b)))
 	 (basisblades (make-basis-blades unitvectors))
-	 (basisbladekeys (map 'vector #'make-keyword basisblades)))
+	 (basisbladekeys (mapcar #'make-keyword basisblades)))
     `(progn
        (defclass ,name (g)
 	 ((coef :initform (make-array ,size :initial-element 0))
@@ -72,11 +79,15 @@ vectors), and optional inner product metric (vector or 2D array)."
 	  (bitmap :allocation :class
 		  :initform ,bitmap)
 	  (unitvectors :allocation :class
-		       :initform ,unitvectors)
+		       :initform ',unitvectors)
 	  (basisblades :allocation :class
-		       :initform ,basisblades)
+		       :initform ',basisblades)
 	  (basisbladekeys :allocation :class
-			  :initform ,basisbladekeys)))
+			  :initform ',basisbladekeys)))
+       (defmethod initialize-instance :after ((g ,name) &key ,@basisblades)
+	 ,@(loop for bb in basisblades
+	      for i = 0 then (incf i)
+	      collect `(when ,bb (setf (aref (coef g) ,i) ,bb))))
        (defgfun ,name ,basisblades))))
 
 ;;; Macros and functions to provide generic access to GA objects
@@ -169,5 +180,5 @@ E.g. (makeg ve2 #b1 1 #b10 2)"
 (defmethod print-object ((g g) stream)
   (format stream "#<~a" (type-of g))
   (ong b c g
-    (format stream " :~a ~a" (aref (basisblades g) b) c))
+    (format stream " :~a ~a" (nth b (basisblades g)) c))
   (format stream ">"))
