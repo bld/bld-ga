@@ -31,17 +31,7 @@
 (defun make-basis-blades (unitvectors)
   "Make a vector of basis blades as a list of unit vector from a vector of unit vectors. Position in the array - in binary - is the binary basis blade representation. Append unit vector symbols. S for scalar."
   (let* ((dim (length unitvectors))
-	 (size (expt 2 dim))
-	 (bbs (make-array size)))
-   #| (dotimes (b size) ; iterate over all basis bitmap blades
-      (setf (aref bbs b)
-	    (loop for i below dim ; iterate over dimensions
-	       unless (zerop (logand (expt 2 i) b)) ; collect if unit vector bitmap (expt 2 i) in basis blade bitmap
-	       collect (aref unitvectors i) into bb
-	       finally (return (if bb
-				   (intern (apply #'concatenate 'string (mapcar #'string bb)))
-				   's)))))
-    bbs))|#
+	 (size (expt 2 dim)))
     (loop for b below size
        collect (loop for i below dim
 		  unless (zerop (logand (expt 2 i) b))
