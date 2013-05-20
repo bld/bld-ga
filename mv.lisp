@@ -168,7 +168,10 @@ E.g. (makeg ve2 #b1 1 #b10 2)"
 ;; Print GA object
 
 (defmethod print-object ((g g) stream)
-  (format stream "#<~a" (type-of g))
-  (ong b c g
-    (format stream " :~a ~a" (nth b (basisblades g)) c))
-  (format stream ">"))
+  (format stream "#<~a~{ :~a ~a~}>"
+	  (type-of g)
+	  (loopg b c g
+	     unless (zerop c)
+	     collect (nth b (basisblades g))
+	     and collect c)))
+		    
