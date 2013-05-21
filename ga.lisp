@@ -175,14 +175,14 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 (defun *ibe (b1 b2)
   "Inner product of basis blade bitmaps in Euclidean space"
   (multiple-value-bind (basis sign) (*gbe b1 b2)
-    (if (= (gradeb basis) (- (gradeb b2) (gradeb b1)))
+    (if (= (gradeb basis) (cl:- (gradeb b2) (gradeb b1)))
 	(values basis sign)
 	(values 0 0))))
 
 (defun *ibo (b1 b2 m)
   "Inner product of basis blade bitmaps in orthogonal space with vector metric"
   (multiple-value-bind (basis sign) (*gbo b1 b2 m)
-    (if (= (gradeb basis) (- (gradeb b2) (gradeb b1)))
+    (if (= (gradeb basis) (cl:- (gradeb b2) (gradeb b1)))
 	(values basis sign)
 	(values 0 0))))
 
