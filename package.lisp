@@ -12,6 +12,7 @@
 			  min max signum)
   (:import-from :bld-gen defmeth2 defmeth1)
   (:export :metric
+	   :matrix
 	   :make-metric
 	   :genrevtable
 	   :g
