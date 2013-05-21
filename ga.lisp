@@ -378,7 +378,7 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 (defmethod exptg ((g g) (n integer))
   "GA object multiplied n times"
   (cond ((zerop n) (oneg g))
-	((evenp n) (square (exptg g (/ n 2))))
+	((evenp n) (square (exptg g (cl:/ n 2))))
 	(t (*g2 g (exptg g (1- n))))))
 
 (defmethod cube ((g g))
