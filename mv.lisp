@@ -171,7 +171,8 @@ E.g. (makeg ve2 #b1 1 #b10 2)"
   (format stream "#<~a~{ :~a ~a~}>"
 	  (type-of g)
 	  (loopg b c g
+	     for bb in (basisblades g)
 	     unless (numberzerop c)
-	     collect (nth b (basisblades g))
+	     collect bb
 	     and collect c)))
-		    
+
