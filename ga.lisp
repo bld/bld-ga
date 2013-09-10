@@ -311,7 +311,7 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
   "Reflect a GA object in plane defined by normal vector"
   (- (reflectline g n)))
 
-(defmethod rotate ((g g) (r g))
+(defmethod rotateg ((g g) (r g))
   "Rotate GA object by rotor (normalized)"
   (*g3 r g (invv r)))
 

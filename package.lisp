@@ -70,7 +70,7 @@
 	   :invv
 	   :reflectline
 	   :reflectplane
-	   :rotate
+	   :rotateg
 	   :spin
 	   :normr2
 	   :normr
