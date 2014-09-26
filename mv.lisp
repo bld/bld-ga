@@ -15,6 +15,24 @@
      (loop for b below size
 	collect (revbsign b)))))
 
+(defun make-bitmap (basisblades)
+  "Make hash table mapping basis blade to binary representation"
+  (apply
+   #'make-hash
+   (loop for bb in basisblades
+      for bb-binary = 0 then (incf bb-binary)
+      collect bb
+      collect bb-binary)))
+
+(defun make-revtable (basisblades)
+  "Make hash table mapping reverse to basis blade"
+  (apply
+   #'make-hash
+   (loop for bb in basisblades
+      for bb-bin = 0 then (incf bb-bin)
+      collect bb
+      collect (revbsign bb-bin))))
+
 (defclass g ()
   ((coef :accessor coef
 	 :type simple-vector
@@ -23,7 +41,9 @@
    (dimension :reader dimension)
    (size :reader size)
    (revtable :reader revtable)
+   (revtable-ht :reader revtable-ht)
    (bitmap :reader bitmap)
+   (bitmap-ht :reader bitmap-ht)
    (unitvectors :reader unitvectors)
    (basisblades :reader basisblades)
    (basisbladekeys :reader basisbladekeys)))
@@ -40,12 +60,16 @@
 				      (intern (apply #'concatenate 'string (mapcar #'string bb)))
 				      's))))))
 
-(defmacro defgfun (class basisblades)
+(defmacro defgfun (class basisblades basisbladekeys)
   "Make a GA object creation function of the given class & bitmap"
-  (let* ((args basisblades)
-	 (args-key (mapcar #'(lambda (arg) (list arg 0)) args)))
-    `(defun ,class (&key ,@args-key)
-       (make-instance ',class :coef (vector ,@args)))))
+  `(defun ,class (&key ,@(loop for bb in basisblades
+			    collect `(,bb 0)))
+     (make-instance 
+      ',class
+      ,@(loop for bb in basisblades
+	   for bbk in basisbladekeys
+	   collect bbk
+	   collect bb))))
 
 (defmacro defg (name unitvectors &optional metric)
   "Define a geometric algebra given the name, dimension, (unit
@@ -64,39 +88,51 @@ vectors), and optional inner product metric (vector or 2D array)."
 		     :initform ,dim)
 	  (size :allocation :class
 		:initform ,size)
-	  (revtable :allocation :class
-		    :initform (genrevtable ,dim))
 	  (bitmap :allocation :class
 		  :initform ,bitmap)
+	  (bitmap-ht :allocation :class
+		  :initform (make-bitmap ',basisblades))
+	  (revtable :allocation :class
+		    :initform (genrevtable ,dim))
+	  (revtable-ht :allocation :class
+		    :initform (make-revtable ',basisblades))
 	  (unitvectors :allocation :class
 		       :initform ',unitvectors)
 	  (basisblades :allocation :class
 		       :initform ',basisblades)
 	  (basisbladekeys :allocation :class
-			  :initform ',basisbladekeys)))
-       (defmethod initialize-instance :after ((g ,name) &key ,@basisblades)
+			  :initform ',basisbladekeys)
+	  ,@(loop for bb in basisblades
+	       for bbk in basisbladekeys
+	       collect `(,bb :initarg ,bbk :initform 0))))
+       (defmethod initialize-instance :after ((g ,name) &key)
 	 ,@(loop for bb in basisblades
 	      for i = 0 then (incf i)
-	      collect `(when ,bb (setf (aref (coef g) ,i) ,bb))))
-       (defgfun ,name ,basisblades))))
+	      collect `(unless (zerop (slot-value g ',bb))
+			 (setf (aref (coef g) ,i) (slot-value g ',bb)))))
+       (defgfun ,name ,basisblades ,basisbladekeys))))
 
 ;;; Macros and functions to provide generic access to GA objects
 
 (defmethod gref ((g g) (bb symbol))
   "Reference GA object by basis blade keyword name"
-  (aref (coef g) (position bb (basisbladekeys g))))
+  #+null(aref (coef g) (position bb (basisbladekeys g)))
+  (slot-value g (find-symbol (symbol-name bb) 'bld-ga)))
 
 (defmethod gset ((g g) (bb symbol) val)
   "Set GA object of given basis blade keyword name to value"
-  (setf (aref (coef g) (position bb (basisbladekeys g))) val))
+  #+null(setf (aref (coef g) (position bb (basisbladekeys g))) val)
+  (setf (slot-value g (find-symbol (symbol-name bb) 'bld-ga)) val))
 
 (defmethod gref ((g g) (bb integer))
   "Reference GA object by basis blade bitmap"
-  (aref (coef g) bb))
+  #+null(aref (coef g) bb)
+  (slot-value g (elt (basisblades g) bb)))
 
 (defmethod gset ((g g) (bb integer) val)
   "Set GA object of given basis blade bitmap to value"
-  (setf (aref (coef g) bb) val))
+  #+null(setf (aref (coef g) bb) val)
+  (setf (slot-value g (elt (basisblades g) bb)) val))
 
 (defsetf gref gset)
 
@@ -112,9 +148,10 @@ vectors), and optional inner product metric (vector or 2D array)."
 
 (defmacro loopg (b c g &body body)
   "Loop across the basis-bitmaps and coefficients of a GA object, evaluating the given LOOP forms"
-  `(loop for ,b across (bitmap ,g)
-      for ,c across (coef ,g)
-	,@body))
+  (let ((bb (gensym)))
+    `(loop for ,b being the hash-values in (bitmap-ht ,g) using (hash-key ,bb)
+	for ,c = (slot-value ,g ,bb)
+	  ,@body)))
 
 (defmacro collectg (b c g form)
   "Loop over the basis-bitmaps and coefficients of a GA object, collecting the results of evaluating FORM into a list"
@@ -138,17 +175,27 @@ vectors), and optional inner product metric (vector or 2D array)."
 
 (defun mapcg (f &rest gs)
   "Return new GA object with coefficients equal to a function mapped across the coefficients the given GA objects"
-  (make-instance (type-of (first gs))
-		 :coef (apply #'map 'vector f (mapcar #'coef gs))))
+  (w/newg gout (first gs)
+    (dolist (bb (basisblades gout))
+      (setf (slot-value gout bb)
+	    (apply f (mapcar #'(lambda (g) (slot-value g bb)) gs))))))
 
 (defmethod mapg (f (g g))
   "Map a function of bitmaps and coefficients across one GA object, returning new one with function results as coefficients"
-  (make-instance (type-of g)
-		 :coef (map 'vector f (bitmap g) (coef g))))
+  (w/newg gout g
+    (dolist (bb (basisblades g))
+      (setf (slot-value gout bb)
+	    (funcall f (gethash bb (bitmap-ht g)) (slot-value g bb))))))
 
 (defmethod cpg ((g g))
   "Copy GA object"
-  (make-instance (type-of g) :coef (copy-seq (coef g))))
+  (apply
+   #'make-instance
+   (type-of g)
+   (loop for bbk in (basisbladekeys g)
+      for bb in (basisblades g)
+      collect bbk
+      collect (slot-value g bb))))
 
 (defmacro w/cpg (gc g &body body)
   "Copy G into GC, evaluate body, and return GC"

@@ -20,8 +20,11 @@
 
 (defmethod equalg ((a g) (b g) &optional (eps double-float-epsilon))
   "Test if two GA objects are equal"
-  (and (equal (type-of a) (type-of b))
-       (every #'(lambda (a b) (almost= a b eps)) (coef a) (coef b))))
+  (and (eq (type-of a) (type-of b))
+       (loop for bb in (basisblades a)
+	  for test = (almost= (slot-value a bb) (slot-value b bb) eps)
+	  while test
+	  finally (return test))))
 
 ;;; metric.lisp tests
 
@@ -53,7 +56,7 @@
   (is (every #'= (coef (e2 :s 1 :e1 2 :e2 3 :e1e2 4)) #(1 2 3 4)))
   (is (every #'= (coef (e3 :s 1 :e1 2 :e2 3 :e1e2 4 :e3 5 :e1e3 6 :e2e3 7 :e1e2e3 8))
 	     #(1 2 3 4 5 6 7 8)))
-  (is (equalg (make-instance 'e2 :coef #(1 2 3 4)) (e2 :s 1 :e1 2 :e2 3 :e1e2 4))))
+  (is (equalg (make-instance 'e2 :s 1 :e1 2 :e2 3 :e1e2 4) (e2 :s 1 :e1 2 :e2 3 :e1e2 4))))
 
 (test gref
   (signals (error "GREF out of bounds didn't signal an error") (gref (e2) :e1e2e3))
@@ -282,13 +285,13 @@
 		  :e1e3 (/ (- (sin (/ pi 8))) (sqrt 3))) 
 	      1d-6)))
 
-(test rotate
+(test rotateg
   (let ((g (e3 :e1 1 :e2 2 :e3 3)))
-    (is (equalg (rotate g (rotor (e3 :e1e2 1 :e2e3 1 :e1e3 1) 0)) g))
-    (is (equalg (rotate g (rotor (e3 :e1e2 1) (/ pi 2))) 
+    (is (equalg (rotateg g (rotor (e3 :e1e2 1 :e2e3 1 :e1e3 1) 0)) g))
+    (is (equalg (rotateg g (rotor (e3 :e1e2 1) (/ pi 2))) 
 		(e3 :e1 -2 :e2 1 :e3 3) 
 		1d-6))
-    (is (equalg (rotate g (rotor (e3 :e1e2 1) (/ pi 4)))
+    (is (equalg (rotateg g (rotor (e3 :e1e2 1) (/ pi 4)))
 		(e3 :e1 (/ (- 1 2) (sqrt 2d0))
 		    :e2 (/ (+ 1 2) (sqrt 2))
 		    :e3 3)
@@ -298,7 +301,7 @@
   (let* ((g (e3 :e1 1 :e2 2 :e3 3))
 	 (r 2)
 	 (s (* (sqrt r) (rotor (e3 :e1e2 1 :e2e3 2 :e1e3 3) (/ pi 4)))))
-    (is (equalg (spin g s) (* r (rotate g s)) 1d-6))))
+    (is (equalg (spin g s) (* r (rotateg g s)) 1d-6))))
     
 (test normr2
   ;; Need more here
@@ -310,7 +313,13 @@
   (is (zerop (normr (e2))))
   (is (= (normr (e2 :s 1 :e1 1 :e2 1 :e1e2 1)) 2)))
 
-(test norme2)
+(test norme2
+  (is (= (norme2 (e2)) 0))
+  (is (= (norme2 (e2 :s 2)) 4))
+  (is (= (norme2 (e2 :e1 2)) 4))
+  (is (= (norme2 (e2 :e2 2)) 4))
+  (is (= (norme2 (e2 :e1e2 2)) 4))
+  (is (= (norme2 (e2 :s 1 :e1 1 :e2 1 :e1e2 1)) 4)))
 
 (test norme)
 

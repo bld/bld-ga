@@ -340,7 +340,8 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 
 (defmethod norminf ((g g))
   "Infinity norm"
-  (reduce #'max (map 'vector #'abs (coef g))))
+  (loopg b c g
+     maximize (abs c)))
 
 (defmethod pseudoscalar ((g g))
   "Pseudoscalar of given GA object"
