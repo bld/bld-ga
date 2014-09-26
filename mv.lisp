@@ -34,10 +34,7 @@
       collect (revbsign bb-bin))))
 
 (defclass g ()
-  ((coef :accessor coef
-	 :type simple-vector
-	 :initarg :coef)
-   (metric :reader metric)
+  ((metric :reader metric)
    (dimension :reader dimension)
    (size :reader size)
    (revtable :reader revtable)
@@ -81,8 +78,7 @@ vectors), and optional inner product metric (vector or 2D array)."
 	 (basisbladekeys (mapcar #'make-keyword basisblades)))
     `(progn
        (defclass ,name (g)
-	 ((coef :initform (make-array ,size :initial-element 0))
-	  (metric :allocation :class
+	 ((metric :allocation :class
 		  :initform (make-metric ,metric))
 	  (dimension :allocation :class
 		     :initform ,dim)
@@ -105,33 +101,24 @@ vectors), and optional inner product metric (vector or 2D array)."
 	  ,@(loop for bb in basisblades
 	       for bbk in basisbladekeys
 	       collect `(,bb :initarg ,bbk :initform 0))))
-       (defmethod initialize-instance :after ((g ,name) &key)
-	 ,@(loop for bb in basisblades
-	      for i = 0 then (incf i)
-	      collect `(unless (zerop (slot-value g ',bb))
-			 (setf (aref (coef g) ,i) (slot-value g ',bb)))))
        (defgfun ,name ,basisblades ,basisbladekeys))))
 
 ;;; Macros and functions to provide generic access to GA objects
 
 (defmethod gref ((g g) (bb symbol))
   "Reference GA object by basis blade keyword name"
-  #+null(aref (coef g) (position bb (basisbladekeys g)))
   (slot-value g (find-symbol (symbol-name bb) 'bld-ga)))
 
 (defmethod gset ((g g) (bb symbol) val)
   "Set GA object of given basis blade keyword name to value"
-  #+null(setf (aref (coef g) (position bb (basisbladekeys g))) val)
   (setf (slot-value g (find-symbol (symbol-name bb) 'bld-ga)) val))
 
 (defmethod gref ((g g) (bb integer))
   "Reference GA object by basis blade bitmap"
-  #+null(aref (coef g) bb)
   (slot-value g (elt (basisblades g) bb)))
 
 (defmethod gset ((g g) (bb integer) val)
   "Set GA object of given basis blade bitmap to value"
-  #+null(setf (aref (coef g) bb) val)
   (setf (slot-value g (elt (basisblades g) bb)) val))
 
 (defsetf gref gset)
