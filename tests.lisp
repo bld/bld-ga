@@ -36,11 +36,11 @@
 ;;; mv.lisp tests
 
 (def-fixture with-revtable (n)
-  (let ((revtable (genrevtable n)))
+  (let ((revtable (bld-ga::make-revtable n)))
     (&body)))
 
 (test revtable
-  (with-fixture with-revtable (3)
+  (with-fixture with-revtable (8)
     (is (= (aref revtable #b0) 1))
     (is (= (aref revtable #b1) 1))
     (is (= (aref revtable #b10) 1))
@@ -50,7 +50,7 @@
     (is (= (aref revtable #b110) -1))
     (is (= (aref revtable #b111) -1))))
 
-(test g
+#+null(test g
   (is (every #'zerop (coef (e2))))
   (is (every #'zerop (coef (e3))))
   (is (every #'= (coef (e2 :s 1 :e1 2 :e2 3 :e1e2 4)) #(1 2 3 4)))
@@ -58,13 +58,13 @@
 	     #(1 2 3 4 5 6 7 8)))
   (is (equalg (make-instance 'e2 :s 1 :e1 2 :e2 3 :e1e2 4) (e2 :s 1 :e1 2 :e2 3 :e1e2 4))))
 
-(test gref
+#+null(test gref
   (signals (error "GREF out of bounds didn't signal an error") (gref (e2) :e1e2e3))
   (is (= (gref (e2 :s 1) :s) 1))
   (is (= (gref (e2 :s 1) :e1) 0))
   (is (= (gref (e2 :s 1) #b0) 1)))
 
-(test gset
+#+null(test gset
   (is (let ((g (e2)))
 	(gset g :s 1)
 	(= (gref g :s) 1)))
@@ -321,7 +321,13 @@
   (is (= (norme2 (e2 :e1e2 2)) 4))
   (is (= (norme2 (e2 :s 1 :e1 1 :e2 1 :e1e2 1)) 4)))
 
-(test norme)
+(test norme
+  (is (= (norme (e2)) 0))
+  (is (= (norme (e2 :s 2)) 2))
+  (is (= (norme (e2 :e1 2)) 2))
+  (is (= (norme (e2 :e2 2)) 2))
+  (is (= (norme (e2 :e1e2 2)) 2))
+  (is (almost= (norme (e2 :e1 1 :e2 1)) (sqrt 2))))
 
 (test norminf)
 

@@ -6,41 +6,26 @@
   "Sign of reversing a basis bitmap"
   (expt -1 (* 1/2 (logcount b) (- (logcount b) 1))))
 
-(defun genrevtable (dim)
-  "Generate reverse sign lookup table"
-  (let ((size (expt 2 dim)))
-    (make-array 
-     size 
-     :initial-contents
-     (loop for b below size
-	collect (revbsign b)))))
-
-(defun make-bitmap (basisblades)
+(defun make-bitmap (size)
   "Make hash table mapping basis blade to binary representation"
-  (apply
-   #'make-hash
-   (loop for bb in basisblades
-      for bb-binary = 0 then (incf bb-binary)
-      collect bb
-      collect bb-binary)))
+  (make-array size
+	      :initial-contents
+	      (loop for b below size
+		 collect b)))
 
-(defun make-revtable (basisblades)
+(defun make-revtable (size)
   "Make hash table mapping reverse to basis blade"
-  (apply
-   #'make-hash
-   (loop for bb in basisblades
-      for bb-bin = 0 then (incf bb-bin)
-      collect bb
-      collect (revbsign bb-bin))))
+  (make-array size
+	      :initial-contents
+	      (loop for b below size
+		 collect (revbsign b))))
 
 (defclass g ()
   ((metric :reader metric)
    (dimension :reader dimension)
    (size :reader size)
    (revtable :reader revtable)
-   (revtable-ht :reader revtable-ht)
    (bitmap :reader bitmap)
-   (bitmap-ht :reader bitmap-ht)
    (unitvectors :reader unitvectors)
    (basisblades :reader basisblades)
    (basisbladekeys :reader basisbladekeys)))
@@ -55,7 +40,7 @@
 		  collect (nth i unitvectors) into bb
 		  finally (return (if bb
 				      (intern (apply #'concatenate 'string (mapcar #'string bb)))
-				      's))))))
+				      (intern "S")))))))
 
 (defmacro defgfun (class basisblades basisbladekeys)
   "Make a GA object creation function of the given class & bitmap"
@@ -73,7 +58,6 @@
 vectors), and optional inner product metric (vector or 2D array)."
   (let* ((dim (length unitvectors))
 	 (size (expt 2 dim))
-	 (bitmap (apply #'vector (loop for b below size collect b)))
 	 (basisblades (make-basis-blades unitvectors))
 	 (basisbladekeys (mapcar #'make-keyword basisblades)))
     `(progn
@@ -85,13 +69,9 @@ vectors), and optional inner product metric (vector or 2D array)."
 	  (size :allocation :class
 		:initform ,size)
 	  (bitmap :allocation :class
-		  :initform ,bitmap)
-	  (bitmap-ht :allocation :class
-		  :initform (make-bitmap ',basisblades))
+		  :initform (make-bitmap ,size))
 	  (revtable :allocation :class
-		    :initform (genrevtable ,dim))
-	  (revtable-ht :allocation :class
-		    :initform (make-revtable ',basisblades))
+		    :initform (make-revtable ,size))
 	  (unitvectors :allocation :class
 		       :initform ',unitvectors)
 	  (basisblades :allocation :class
@@ -136,7 +116,8 @@ vectors), and optional inner product metric (vector or 2D array)."
 (defmacro loopg (b c g &body body)
   "Loop across the basis-bitmaps and coefficients of a GA object, evaluating the given LOOP forms"
   (let ((bb (gensym)))
-    `(loop for ,b being the hash-values in (bitmap-ht ,g) using (hash-key ,bb)
+    `(loop for ,b across (bitmap ,g)
+	for ,bb in (basisblades ,g)
 	for ,c = (slot-value ,g ,bb)
 	  ,@body)))
 
@@ -170,19 +151,16 @@ vectors), and optional inner product metric (vector or 2D array)."
 (defmethod mapg (f (g g))
   "Map a function of bitmaps and coefficients across one GA object, returning new one with function results as coefficients"
   (w/newg gout g
-    (dolist (bb (basisblades g))
-      (setf (slot-value gout bb)
-	    (funcall f (gethash bb (bitmap-ht g)) (slot-value g bb))))))
+    (loop for bb in (basisblades g)
+       for b across (bitmap g)
+       do (setf (slot-value gout bb)
+		(funcall f b (slot-value g bb))))))
 
 (defmethod cpg ((g g))
   "Copy GA object"
-  (apply
-   #'make-instance
-   (type-of g)
-   (loop for bbk in (basisbladekeys g)
-      for bb in (basisblades g)
-      collect bbk
-      collect (slot-value g bb))))
+  (w/newg gout g
+    (loop for bb in (basisblades g)
+       do (setf (slot-value gout bb) (slot-value g bb)))))
 
 (defmacro w/cpg (gc g &body body)
   "Copy G into GC, evaluate body, and return GC"
@@ -192,21 +170,15 @@ vectors), and optional inner product metric (vector or 2D array)."
 
 (defun makeg (class &rest args)
   "Create GA object of specified class. Provide basis-bitmaps & coefficients to populate.
-E.g. (makeg ve2 #b1 1 #b10 2)"
-  (w/g tmp class
-    (loop while args
-       for b = (pop args)
-       for c = (pop args)
-       when c do (gset tmp b c))))
+E.g. (makeg 'e2 :s 1 :e1e2 2)"
+  (apply #'make-instance class args))
 
 ;; Print GA object
 
 (defmethod print-object ((g g) stream)
   (format stream "#<~a~{ :~a ~a~}>"
 	  (type-of g)
-	  (loopg b c g
-	     for bb in (basisblades g)
+	  (loop for bb in (basisblades g)
+	     for c = (slot-value g bb)
 	     unless (numberzerop c)
-	     collect bb
-	     and collect c)))
-
+	     collect bb and collect c)))

@@ -210,7 +210,7 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 
 (defun transform (class bitmap scale m dim)
   "Transform a basis blade, given bitmap and scale, to a multivector using tranform matrix"
-  (let ((al (makeg class 0 scale)))
+  (let ((al (makeg class :s scale)))
     (loop for b = bitmap then (ash b -1)
        for i below dim
        until (zerop b)
@@ -220,8 +220,8 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 		 for mji = (aref m j i)
 		 do (unless (zerop mji)
 		      (ong alb alc al
-			(setq tmp (+ tmp (*o2 (makeg class alb alc) 
-					      (makeg class (ash 1 j) mji)))))))
+			(setq tmp (+ tmp (*o2 (makeg class (elt (basisbladekeys tmp) alb) alc)
+					      (makeg class (elt (basisbladekeys tmp) (ash 1 j)) mji)))))))
 	      (setq al tmp))))
     al))
 
@@ -275,7 +275,7 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 
 (defmethod scalar ((g g))
   "Scalar part of GA object"
-  (gref g :s))
+  (slot-value g (intern "S")))
 
 (defmethod *s2 ((g1 g) (g2 g))
   "Scalar product of 2 GA objects"
@@ -340,8 +340,8 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 
 (defmethod norminf ((g g))
   "Infinity norm"
-  (loopg b c g
-     maximize (abs c)))
+  (apply #'max
+	 (collectg b c g (abs c))))
 
 (defmethod pseudoscalar ((g g))
   "Pseudoscalar of given GA object"
