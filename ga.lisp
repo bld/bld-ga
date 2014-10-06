@@ -447,3 +447,9 @@ e.g. e13 v e31, e123 v e231 and return 1 if even or -1 if odd"
 (defmethod zerogp ((g g))
   "Test if GA object is zero"
   (null (grade g)))
+
+;;; Some special functions
+
+(defmethod *g3-v ((g1 g) (g2 g) (g3 g))
+  "Vector part of *g3"
+  (graden (*g g1 g2 g3) 1))
